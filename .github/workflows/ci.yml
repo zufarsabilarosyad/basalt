@@ -65,7 +65,7 @@ jobs:
 
       - name: Execute Pytest Suite with Coverage & CTRF Reporting
         run: |
-          pytest --cov=strata --cov-report=xml --cov-report=term-missing tests/
+          pytest --cov=basalt --cov-report=xml --cov-report=term-missing tests/
 
       - name: Publish CTRF Test Summary
         uses: ctrf-io/github-test-reporter@v1
@@ -137,18 +137,18 @@ jobs:
           context: .
           file: ./Dockerfile
           load: true
-          tags: strata:test
+          tags: basalt:test
 
       - name: Run Docker Container
         run: |
-          docker run -d --name strata_server -p 8000:8000 strata:test
+          docker run -d --name basalt_server -p 8000:8000 basalt:test
 
       - name: Wait for API Server & Smoke Test Healthcheck
         run: |
-          echo "Verifying Strata API server health in container..."
+          echo "Verifying Basalt API server health in container..."
           for i in {1..15}; do
             if curl -fsS http://localhost:8000/health | grep -q "healthy"; then
-              echo "✅ Strata container health check passed successfully!"
+              echo "✅ Basalt container health check passed successfully!"
               curl -s http://localhost:8000/info
               exit 0
             fi
@@ -156,11 +156,11 @@ jobs:
             sleep 2
           done
           echo "❌ Container health check timed out!"
-          docker logs strata_server
+          docker logs basalt_server
           exit 1
 
       - name: Stop and Cleanup Container
         if: always()
         run: |
-          docker stop strata_server || true
-          docker rm strata_server || true
+          docker stop basalt_server || true
+          docker rm basalt_server || true

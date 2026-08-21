@@ -10,16 +10,16 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from strata.core.dag.ast import ExecutorType, StepSpec
-from strata.core.engine.context import ExecutionContext
-from strata.core.executors.base import BaseExecutor, ExecutorError, ExecutorTimeoutError
-from strata.core.executors.http import HTTPExecutor
-from strata.core.executors.inline import (
+from basalt.core.dag.ast import ExecutorType, StepSpec
+from basalt.core.engine.context import ExecutionContext
+from basalt.core.executors.base import BaseExecutor, ExecutorError, ExecutorTimeoutError
+from basalt.core.executors.http import HTTPExecutor
+from basalt.core.executors.inline import (
     PythonInlineExecutor,
     clear_python_callable_registry,
     register_python_callable,
 )
-from strata.core.executors.subprocess import (
+from basalt.core.executors.subprocess import (
     SubprocessExecutor,
     parse_json_stdout_if_applicable,
     sanitize_env_vars,

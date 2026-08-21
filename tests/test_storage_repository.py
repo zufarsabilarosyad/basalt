@@ -1,4 +1,4 @@
-"""Integration Tests for Async SQLite Database Engine, Models, Migrations, Serializers, and StrataRepository.
+"""Integration Tests for Async SQLite Database Engine, Models, Migrations, Serializers, and BasaltRepository.
 
 Validates SQLite table creation, WAL pragmas, schema migrations, ORM serialization,
 transaction rollbacks, concurrent run logging, and Dead-Letter Queue (DLQ) operations.
@@ -9,24 +9,24 @@ from datetime import UTC, datetime
 
 import pytest
 
-from strata.core.dag.ast import DAGSpec, ExecutorType, StepSpec, TriggerSpec, TriggerType
-from strata.core.engine.runner import WorkflowRunResult
-from strata.core.engine.state_machine import StepState, WorkflowState
-from strata.core.storage.base import AlreadyExistsError
-from strata.storage.database import DatabaseManager
-from strata.storage.migrations import SchemaMigrator
-from strata.storage.models import DAGRunModel
-from strata.storage.repository import StrataRepository
-from strata.storage.serializers import ModelSerializer
+from basalt.core.dag.ast import DAGSpec, ExecutorType, StepSpec, TriggerSpec, TriggerType
+from basalt.core.engine.runner import WorkflowRunResult
+from basalt.core.engine.state_machine import StepState, WorkflowState
+from basalt.core.storage.base import AlreadyExistsError
+from basalt.storage.database import DatabaseManager
+from basalt.storage.migrations import SchemaMigrator
+from basalt.storage.models import DAGRunModel
+from basalt.storage.repository import BasaltRepository
+from basalt.storage.serializers import ModelSerializer
 
 
 @pytest.fixture
-async def temp_db_repo(tmp_path) -> StrataRepository:
-    """Fixture providing a clean StrataRepository backed by a temporary SQLite file database."""
-    db_file = tmp_path / "test_strata.db"
+async def temp_db_repo(tmp_path) -> BasaltRepository:
+    """Fixture providing a clean BasaltRepository backed by a temporary SQLite file database."""
+    db_file = tmp_path / "test_basalt.db"
     db_url = f"sqlite+aiosqlite:///{db_file}"
     db_mgr = DatabaseManager(database_url=db_url)
-    repo = StrataRepository(db_manager=db_mgr)
+    repo = BasaltRepository(db_manager=db_mgr)
     await repo.initialize()
 
     # Save default DAG for foreign key validity in tests
@@ -91,8 +91,8 @@ async def test_model_serializer_roundtrips() -> None:
 
 
 @pytest.mark.asyncio
-async def test_repository_dag_crud_operations(temp_db_repo: StrataRepository) -> None:
-    """Verify StrataRepository DAGSpec save, load, update, list, and delete."""
+async def test_repository_dag_crud_operations(temp_db_repo: BasaltRepository) -> None:
+    """Verify BasaltRepository DAGSpec save, load, update, list, and delete."""
     dag = DAGSpec(
         id="dag_repo_1",
         name="Repo Test DAG",
@@ -147,8 +147,8 @@ async def test_repository_dag_crud_operations(temp_db_repo: StrataRepository) ->
 
 
 @pytest.mark.asyncio
-async def test_repository_run_ledger_operations(temp_db_repo: StrataRepository) -> None:
-    """Verify StrataRepository create run, save result, list runs, and step state tracking."""
+async def test_repository_run_ledger_operations(temp_db_repo: BasaltRepository) -> None:
+    """Verify BasaltRepository create run, save result, list runs, and step state tracking."""
     # Create pending run
     pending_run = await temp_db_repo.create_run(
         dag_id="dag_sales", run_id="run_sales_001", inputs={"region": "US"}
@@ -198,7 +198,7 @@ async def test_repository_run_ledger_operations(temp_db_repo: StrataRepository) 
 
 
 @pytest.mark.asyncio
-async def test_repository_step_run_recording(temp_db_repo: StrataRepository) -> None:
+async def test_repository_step_run_recording(temp_db_repo: BasaltRepository) -> None:
     """Verify record_step_run method creates StepRunModel entries."""
     await temp_db_repo.create_run(dag_id="dag_sales", run_id="run_step_001")
     step_run = await temp_db_repo.record_step_run(
@@ -213,7 +213,7 @@ async def test_repository_step_run_recording(temp_db_repo: StrataRepository) -> 
 
 
 @pytest.mark.asyncio
-async def test_repository_transaction_rollback(temp_db_repo: StrataRepository) -> None:
+async def test_repository_transaction_rollback(temp_db_repo: BasaltRepository) -> None:
     """Verify session exception auto-rollback leaves database clean."""
     try:
         async with temp_db_repo.db_manager.session() as session:
@@ -235,7 +235,7 @@ async def test_repository_transaction_rollback(temp_db_repo: StrataRepository) -
 
 
 @pytest.mark.asyncio
-async def test_repository_concurrent_run_saves(temp_db_repo: StrataRepository) -> None:
+async def test_repository_concurrent_run_saves(temp_db_repo: BasaltRepository) -> None:
     """Verify concurrent WorkflowRunResult saves execute cleanly without lock collisions."""
     now = datetime.now(UTC)
 
@@ -260,7 +260,7 @@ async def test_repository_concurrent_run_saves(temp_db_repo: StrataRepository) -
 
 
 @pytest.mark.asyncio
-async def test_repository_dead_letter_queue_operations(temp_db_repo: StrataRepository) -> None:
+async def test_repository_dead_letter_queue_operations(temp_db_repo: BasaltRepository) -> None:
     """Verify Dead-Letter Queue (DLQ) payload saving, listing, and processing."""
     dlq_entry = await temp_db_repo.save_dlq_payload(
         payload_id="dlq_payload_101",

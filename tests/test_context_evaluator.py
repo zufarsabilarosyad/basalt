@@ -6,10 +6,10 @@ thread-safe context snapshots, decorator handlers, and async lifecycle hook call
 
 import pytest
 
-from strata.core.engine.context import ExecutionContext
-from strata.core.engine.evaluator import ExpressionEvaluationError, ExpressionEvaluator
-from strata.core.engine.hooks import HookRegistry, LifecycleEvent, get_hook_registry
-from strata.core.engine.state_machine import StepState
+from basalt.core.engine.context import ExecutionContext
+from basalt.core.engine.evaluator import ExpressionEvaluationError, ExpressionEvaluator
+from basalt.core.engine.hooks import HookRegistry, LifecycleEvent, get_hook_registry
+from basalt.core.engine.state_machine import StepState
 
 
 @pytest.fixture

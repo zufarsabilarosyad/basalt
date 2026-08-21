@@ -9,16 +9,16 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 
-from strata.core.dag.ast import DAGSpec, ExecutorType, StepSpec, TriggerSpec, TriggerType
-from strata.core.triggers.base import TriggerEvent, TriggerStatus
-from strata.core.triggers.cron import CronEvaluator, CronParseError, CronTrigger
-from strata.core.triggers.dispatcher import TriggerDispatcher, get_trigger_dispatcher
-from strata.core.triggers.interval import (
+from basalt.core.dag.ast import DAGSpec, ExecutorType, StepSpec, TriggerSpec, TriggerType
+from basalt.core.triggers.base import TriggerEvent, TriggerStatus
+from basalt.core.triggers.cron import CronEvaluator, CronParseError, CronTrigger
+from basalt.core.triggers.dispatcher import TriggerDispatcher, get_trigger_dispatcher
+from basalt.core.triggers.interval import (
     IntervalCalculator,
     IntervalTrigger,
     create_interval_trigger,
 )
-from strata.core.triggers.webhook import (
+from basalt.core.triggers.webhook import (
     WebhookAuthenticationError,
     WebhookRegistry,
     WebhookSignatureVerifier,
@@ -150,7 +150,7 @@ def test_webhook_signature_verifier_and_trigger() -> None:
 
     # WebhookTrigger processing
     trig = create_webhook_trigger("wh_trig", dag_id="dag_wh", secret=secret)
-    headers = {"X-Strata-Signature": f"sha256={signature}", "Content-Type": "application/json"}
+    headers = {"X-Basalt-Signature": f"sha256={signature}", "Content-Type": "application/json"}
 
     event = trig.process_webhook(
         raw_body=raw_body,
@@ -162,7 +162,7 @@ def test_webhook_signature_verifier_and_trigger() -> None:
     assert event.payload["webhook_body"]["action"] == "deploy"
 
     # Invalid signature should raise WebhookAuthenticationError
-    invalid_headers = {"X-Strata-Signature": "sha256=invalid_hash_value"}
+    invalid_headers = {"X-Basalt-Signature": "sha256=invalid_hash_value"}
     with pytest.raises(WebhookAuthenticationError):
         trig.process_webhook(raw_body=raw_body, headers=invalid_headers)
 

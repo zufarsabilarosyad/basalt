@@ -10,7 +10,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from click.testing import CliRunner
 
-from strata.cli.main import cli
+from basalt.cli.main import cli
 
 
 @pytest.fixture
@@ -32,7 +32,7 @@ def test_cli_version_and_doctor_commands(cli_runner: CliRunner) -> None:
     # 2. Command version
     res_ver = cli_runner.invoke(cli, ["version"])
     assert res_ver.exit_code == 0
-    assert "Strata Version: 1.0.0" in res_ver.output
+    assert "Basalt Version: 1.0.0" in res_ver.output
 
     # 3. Command doctor
     res_doc = cli_runner.invoke(cli, ["doctor"])
@@ -44,7 +44,7 @@ def test_cli_version_and_doctor_commands(cli_runner: CliRunner) -> None:
     with cli_runner.isolated_filesystem():
         res_init = cli_runner.invoke(cli, ["init", "--directory", "my_workspace"])
         assert res_init.exit_code == 0
-        assert "Initialized Strata workspace" in res_init.output
+        assert "Initialized Basalt workspace" in res_init.output
 
 
 def test_cli_verbose_and_quiet_flags(cli_runner: CliRunner) -> None:
@@ -295,7 +295,7 @@ def test_cli_server_start_command_dry_run(cli_runner: CliRunner) -> None:
         )
         assert res_start.exit_code == 0
         mock_uvicorn.assert_called_once_with(
-            "strata.api.app:app",
+            "basalt.api.app:app",
             host="0.0.0.0",
             port=9000,
             reload=False,

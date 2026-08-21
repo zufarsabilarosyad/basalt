@@ -1,4 +1,4 @@
-"""Unit Tests for DAG Sorter and Validator Modules in Strata Workflow Engine.
+"""Unit Tests for DAG Sorter and Validator Modules in Basalt Workflow Engine.
 
 Validates Kahn's level-parallel sorting, linear ordering, cycle path detection,
 transitive dependency tracking, critical path calculation, and structural validation rules.
@@ -6,16 +6,16 @@ transitive dependency tracking, critical path calculation, and structural valida
 
 import pytest
 
-from strata.core.dag.ast import DAGSpec, StepSpec, TriggerSpec, TriggerType
-from strata.core.dag.exceptions import (
+from basalt.core.dag.ast import DAGSpec, StepSpec, TriggerSpec, TriggerType
+from basalt.core.dag.exceptions import (
     CycleDetectedError,
     DAGValidationError,
     DuplicateStepIdError,
     InvalidExecutorConfigError,
     OrphanDependencyError,
 )
-from strata.core.dag.sorter import DAGSorter, sort_dag_steps
-from strata.core.dag.validator import DAGValidator, validate_dag_spec
+from basalt.core.dag.sorter import DAGSorter, sort_dag_steps
+from basalt.core.dag.validator import DAGValidator, validate_dag_spec
 
 
 @pytest.fixture

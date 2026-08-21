@@ -22,4 +22,4 @@ RUN pip install --no-deps -e .
 
 EXPOSE 8000
 
-CMD ["strata", "server", "start", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["basalt", "server", "start", "--host", "0.0.0.0", "--port", "8000"]

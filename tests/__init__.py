@@ -1,1 +1,1 @@
-"""Strata Test Suite Package."""
+"""Basalt Test Suite Package."""

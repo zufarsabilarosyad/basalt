@@ -1,12 +1,12 @@
-# Strata — Embedded Event-Driven Workflow & DAG Execution Engine
+# Basalt — Embedded Event-Driven Workflow & DAG Execution Engine
 
 [![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Framework: FastAPI](https://img.shields.io/badge/Framework-FastAPI-green.svg)](https://fastapi.tiangolo.com/)
 
-**Strata** is a production-grade, lightweight, embedded Directed Acyclic Graph (DAG) workflow orchestrator and event execution engine built for Python 3.12+. It enables developers to define, schedule, trigger, and execute complex multi-step automation workflows with strict state persistence, retry resilience, variable context interpolation, and step-level isolation.
+**Basalt** is a production-grade, lightweight, embedded Directed Acyclic Graph (DAG) workflow orchestrator and event execution engine built for Python 3.12+. It enables developers to define, schedule, trigger, and execute complex multi-step automation workflows with strict state persistence, retry resilience, variable context interpolation, and step-level isolation.
 
-Strata operates completely self-contained in-process or backed by a local SQLite database without requiring external message brokers (such as Redis, RabbitMQ, or Celery) or cloud infrastructure.
+Basalt operates completely self-contained in-process or backed by a local SQLite database without requiring external message brokers (such as Redis, RabbitMQ, or Celery) or cloud infrastructure.
 
 ---
 
@@ -57,7 +57,7 @@ graph TD
 ## Codebase Structure
 
 ```
-strata/
+basalt/
 ├── Dockerfile                  # Production Docker container definition
 ├── Makefile                    # Production Makefile for build, test, lint, clean & docker
 ├── pyproject.toml              # Build backend, package metadata & tool configs
@@ -67,7 +67,7 @@ strata/
 │   ├── REQUIREMENTS.MD         # Requirements specification
 │   ├── DESIGN.MD               # System architecture & file map
 │   └── PLAN.MD                 # Master implementation checklist
-├── src/strata/                 # Primary source code directory
+├── src/basalt/                 # Primary source code directory
 │   ├── core/                   # Engine, DAG parser, executors, triggers, resilience
 │   │   ├── dag/                # AST, parser, validator, topological sorter
 │   │   ├── engine/             # Runner, state machine, context, evaluator, hooks
@@ -87,9 +87,9 @@ strata/
 
 ### Local Setup
 
-1. **Clone the repository and navigate to `strata`:**
+1. **Clone the repository and navigate to `basalt`:**
    ```bash
-   cd strata
+   cd basalt
    ```
 
 2. **Create and activate a Python 3.12 virtual environment:**
@@ -98,49 +98,49 @@ strata/
    source .venv/bin/activate
    ```
 
-3. **Install dependencies and `strata` in editable mode:**
+3. **Install dependencies and `basalt` in editable mode:**
    ```bash
    pip install -e ".[dev]"
    ```
 
 4. **Verify CLI installation:**
    ```bash
-   strata --help
+   basalt --help
    ```
 
 ### Docker Setup
 
-Build and run Strata in a reproducible Docker container:
+Build and run Basalt in a reproducible Docker container:
 
 ```bash
-docker build -t strata:latest .
-docker run -p 8000:8000 strata:latest
+docker build -t basalt:latest .
+docker run -p 8000:8000 basalt:latest
 ```
 
 ---
 
 ## Command Line Interface (CLI)
 
-Strata provides a rich command-line tool `strata`:
+Basalt provides a rich command-line tool `basalt`:
 
 ```bash
 # Validate a DAG workflow file
-strata dag validate workflow.yaml
+basalt dag validate workflow.yaml
 
 # List registered DAG definitions
-strata dag list
+basalt dag list
 
 # Execute a DAG workflow locally
-strata run start workflow.yaml
+basalt run start workflow.yaml
 
 # Check the status of a specific workflow run
-strata run status <run_id>
+basalt run status <run_id>
 
 # View execution logs for a workflow run
-strata run logs <run_id>
+basalt run logs <run_id>
 
 # Start the REST API server
-strata server start --host 0.0.0.0 --port 8000
+basalt server start --host 0.0.0.0 --port 8000
 ```
 
 ---
@@ -165,7 +165,7 @@ When the REST server is running (`strata server start`), interactive Swagger doc
 
 ## Makefile Quick Reference
 
-Strata includes a production-grade `Makefile` for streamlined development, testing, and container management:
+Basalt includes a production-grade `Makefile` for streamlined development, testing, and container management:
 
 | Command | Description |
 | :--- | :--- |
@@ -178,7 +178,7 @@ Strata includes a production-grade `Makefile` for streamlined development, testi
 | `make format` | Auto-format source code using `ruff` |
 | `make clean` | Recursively clean `__pycache__`, `.pytest_cache`, `.mypy_cache`, and build artifacts |
 | `make doctor` | Run system diagnostics and verify environment dependencies |
-| `make docker-build` | Build production Docker container image (`strata:latest`) |
+| `make docker-build` | Build production Docker container image (`basalt:latest`) |
 | `make docker-run` | Run production Docker container binding port 8000 |
 | `make server` | Launch local REST API server |
 

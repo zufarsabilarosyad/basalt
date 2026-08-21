@@ -8,23 +8,23 @@ from datetime import UTC, datetime
 
 import pytest
 
-from strata.core.dag.ast import DAGSpec, ExecutorType, RetryPolicySpec, StepSpec
-from strata.core.engine.runner import WorkflowRunResult
-from strata.core.engine.state_machine import WorkflowState
-from strata.core.resilience.backoff import (
+from basalt.core.dag.ast import DAGSpec, ExecutorType, RetryPolicySpec, StepSpec
+from basalt.core.engine.runner import WorkflowRunResult
+from basalt.core.engine.state_machine import WorkflowState
+from basalt.core.resilience.backoff import (
     BackoffCalculator,
     BackoffPolicy,
     BackoffStrategy,
     JitterStrategy,
     compute_backoff_delay,
 )
-from strata.core.resilience.retry import (
+from basalt.core.resilience.retry import (
     RetryExhaustedError,
     RetryHandler,
     retryable,
 )
-from strata.core.storage.base import AlreadyExistsError, NotFoundError
-from strata.core.storage.memory import MemoryStorageEngine, get_memory_storage_engine
+from basalt.core.storage.base import AlreadyExistsError, NotFoundError
+from basalt.core.storage.memory import MemoryStorageEngine, get_memory_storage_engine
 
 # --- Storage Engine Tests ---
 

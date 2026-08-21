@@ -1,4 +1,4 @@
-"""End-to-End Integration Tests for StrataEngine Facade Subsystem.
+"""End-to-End Integration Tests for BasaltEngine Facade Subsystem.
 
 Validates DAG parsing, AST validation, database & memory storage backends,
 resilient worker pool execution, trigger dispatching, and webhook processing.
@@ -8,18 +8,18 @@ import asyncio
 
 import pytest
 
-from strata.core.dag.ast import DAGSpec, ExecutorType, StepSpec, TriggerSpec, TriggerType
-from strata.core.dag.exceptions import StrataError
-from strata.core.engine.engine import EngineConfig, StrataEngine, get_engine
-from strata.core.engine.state_machine import WorkflowState
-from strata.core.triggers.webhook import WebhookSignatureVerifier
+from basalt.core.dag.ast import DAGSpec, ExecutorType, StepSpec, TriggerSpec, TriggerType
+from basalt.core.dag.exceptions import BasaltError
+from basalt.core.engine.engine import BasaltEngine, EngineConfig, get_engine
+from basalt.core.engine.state_machine import WorkflowState
+from basalt.core.triggers.webhook import WebhookSignatureVerifier
 
 
 @pytest.mark.asyncio
 async def test_engine_initialization_memory_mode() -> None:
-    """Verify StrataEngine initialization and lifecycle in in-memory storage mode."""
+    """Verify BasaltEngine initialization and lifecycle in in-memory storage mode."""
     config = EngineConfig(use_memory_storage=True, enable_triggers=False)
-    async with StrataEngine(config=config) as engine:
+    async with BasaltEngine(config=config) as engine:
         assert engine.is_running is True
         assert engine.memory_storage is not None
         assert engine.repository is None
@@ -27,12 +27,12 @@ async def test_engine_initialization_memory_mode() -> None:
 
 @pytest.mark.asyncio
 async def test_engine_initialization_sqlite_mode(tmp_path) -> None:
-    """Verify StrataEngine initialization backed by temporary SQLite file database."""
+    """Verify BasaltEngine initialization backed by temporary SQLite file database."""
     db_file = tmp_path / "engine_test.db"
     db_url = f"sqlite+aiosqlite:///{db_file}"
     config = EngineConfig(db_url=db_url, use_memory_storage=False, enable_triggers=False)
 
-    async with StrataEngine(config=config) as engine:
+    async with BasaltEngine(config=config) as engine:
         assert engine.is_running is True
         assert engine.repository is not None
 
@@ -43,7 +43,7 @@ async def test_engine_dag_registration_and_query(tmp_path) -> None:
     db_file = tmp_path / "engine_dags.db"
     config = EngineConfig(db_url=f"sqlite+aiosqlite:///{db_file}", enable_triggers=False)
 
-    async with StrataEngine(config=config) as engine:
+    async with BasaltEngine(config=config) as engine:
         # 1. Register from YAML string
         yaml_content = """
 id: dag_yaml_test
@@ -90,7 +90,7 @@ async def test_engine_end_to_end_dag_execution(tmp_path) -> None:
     db_file = tmp_path / "engine_exec.db"
     config = EngineConfig(db_url=f"sqlite+aiosqlite:///{db_file}", enable_triggers=False)
 
-    async with StrataEngine(config=config) as engine:
+    async with BasaltEngine(config=config) as engine:
         dag = DAGSpec(
             id="dag_e2e_exec",
             name="E2E Execution DAG",
@@ -135,7 +135,7 @@ async def test_engine_webhook_event_trigger(tmp_path) -> None:
 
     secret = "wh_engine_secret_key_456"
 
-    async with StrataEngine(config=config) as engine:
+    async with BasaltEngine(config=config) as engine:
         dag = DAGSpec(
             id="dag_wh_target",
             name="Webhook Target DAG",
@@ -159,7 +159,7 @@ async def test_engine_webhook_event_trigger(tmp_path) -> None:
         # Simulate incoming HTTP webhook POST
         raw_body = b'{"user": "Alice"}'
         sig = WebhookSignatureVerifier.compute_signature(raw_body, secret)
-        headers = {"X-Strata-Signature": f"sha256={sig}", "Content-Type": "application/json"}
+        headers = {"X-Basalt-Signature": f"sha256={sig}", "Content-Type": "application/json"}
 
         run_res = await engine.process_webhook_event(
             trigger_id="trig_wh_1",
@@ -182,7 +182,7 @@ async def test_engine_interval_trigger_execution(tmp_path) -> None:
         poll_interval_seconds=0.1,
     )
 
-    async with StrataEngine(config=config) as engine:
+    async with BasaltEngine(config=config) as engine:
         dag = DAGSpec(
             id="dag_interval_test",
             name="Interval Engine DAG",
@@ -217,7 +217,7 @@ async def test_engine_double_start_and_stop_safety(tmp_path) -> None:
     db_file = tmp_path / "engine_safety.db"
     config = EngineConfig(db_url=f"sqlite+aiosqlite:///{db_file}", enable_triggers=True)
 
-    engine = StrataEngine(config=config)
+    engine = BasaltEngine(config=config)
     await engine.start()
     assert engine.is_running is True
 
@@ -235,10 +235,10 @@ async def test_engine_double_start_and_stop_safety(tmp_path) -> None:
 
 @pytest.mark.asyncio
 async def test_engine_unregistered_dag_error_handling(tmp_path) -> None:
-    """Verify StrataEngine raises StrataError when attempting to run unregistered DAG."""
+    """Verify BasaltEngine raises BasaltError when attempting to run unregistered DAG."""
     config = EngineConfig(use_memory_storage=True, enable_triggers=False)
-    async with StrataEngine(config=config) as engine:
-        with pytest.raises(StrataError) as exc_info:
+    async with BasaltEngine(config=config) as engine:
+        with pytest.raises(BasaltError) as exc_info:
             await engine.run_dag("non_existent_dag_id")
         assert exc_info.value.code == "DAG_NOT_FOUND"
 

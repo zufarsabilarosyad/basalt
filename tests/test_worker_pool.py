@@ -9,13 +9,13 @@ import asyncio
 
 import pytest
 
-from strata.core.dag.ast import DAGSpec, ExecutorType, StepSpec
-from strata.core.engine.context import ExecutionContext
-from strata.core.engine.runner import WorkflowRunner, run_dag_workflow
-from strata.core.engine.state_machine import StepState, WorkflowState
-from strata.core.executors.base import BaseExecutor, ExecutorError
-from strata.core.executors.inline import clear_python_callable_registry, register_python_callable
-from strata.core.executors.pool import (
+from basalt.core.dag.ast import DAGSpec, ExecutorType, StepSpec
+from basalt.core.engine.context import ExecutionContext
+from basalt.core.engine.runner import WorkflowRunner, run_dag_workflow
+from basalt.core.engine.state_machine import StepState, WorkflowState
+from basalt.core.executors.base import BaseExecutor, ExecutorError
+from basalt.core.executors.inline import clear_python_callable_registry, register_python_callable
+from basalt.core.executors.pool import (
     ExecutorFactory,
     WorkerPool,
     get_global_executor_factory,

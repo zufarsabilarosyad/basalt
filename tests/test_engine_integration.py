@@ -1,4 +1,4 @@
-"""Comprehensive End-to-End Integration Test Suite for Strata Engine.
+"""Comprehensive End-to-End Integration Test Suite for Basalt Engine.
 
 Validates complete multi-step ETL workflows, conditional branching and skipping,
 retry policy recovery, active run cancellation, batch run execution, fast-fail on error,
@@ -9,13 +9,13 @@ import asyncio
 
 import pytest
 
-from strata.core.engine.engine import StrataEngine
-from strata.core.engine.hooks import LifecycleEvent
-from strata.core.engine.state_machine import StepState, WorkflowState
+from basalt.core.engine.engine import BasaltEngine
+from basalt.core.engine.hooks import LifecycleEvent
+from basalt.core.engine.state_machine import StepState, WorkflowState
 
 
 @pytest.mark.asyncio
-async def test_end_to_end_complex_etl_workflow(sqlite_engine: StrataEngine) -> None:
+async def test_end_to_end_complex_etl_workflow(sqlite_engine: BasaltEngine) -> None:
     """Validate full multi-step ETL workflow with data dependencies and output propagation."""
     etl_yaml = """
 id: e2e_etl_pipeline
@@ -79,7 +79,7 @@ steps:
 
 
 @pytest.mark.asyncio
-async def test_end_to_end_conditional_branching_and_skipping(sqlite_engine: StrataEngine) -> None:
+async def test_end_to_end_conditional_branching_and_skipping(sqlite_engine: BasaltEngine) -> None:
     """Validate conditional step execution where step is skipped based on when expression."""
     conditional_yaml = """
 id: e2e_conditional_pipeline
@@ -115,7 +115,7 @@ steps:
 
 
 @pytest.mark.asyncio
-async def test_end_to_end_retry_policy_recovery(sqlite_engine: StrataEngine) -> None:
+async def test_end_to_end_retry_policy_recovery(sqlite_engine: BasaltEngine) -> None:
     """Validate step retry policy recovery and ultimate workflow completion."""
     retry_yaml = """
 id: e2e_retry_pipeline
@@ -140,7 +140,7 @@ steps:
 
 
 @pytest.mark.asyncio
-async def test_end_to_end_active_run_cancellation(sqlite_engine: StrataEngine) -> None:
+async def test_end_to_end_active_run_cancellation(sqlite_engine: BasaltEngine) -> None:
     """Validate cancelling an active workflow run via engine runner."""
     slow_yaml = """
 id: e2e_slow_pipeline
@@ -174,7 +174,7 @@ steps:
 
 
 @pytest.mark.asyncio
-async def test_end_to_end_concurrent_workflow_batch(sqlite_engine: StrataEngine) -> None:
+async def test_end_to_end_concurrent_workflow_batch(sqlite_engine: BasaltEngine) -> None:
     """Validate concurrent execution of multiple workflow runs in a batch."""
     batch_yaml = """
 id: e2e_batch_item_pipeline
@@ -201,7 +201,7 @@ steps:
 
 
 @pytest.mark.asyncio
-async def test_end_to_end_webhook_event_trigger_flow(sqlite_engine: StrataEngine) -> None:
+async def test_end_to_end_webhook_event_trigger_flow(sqlite_engine: BasaltEngine) -> None:
     """Validate incoming webhook payload HMAC verification and automatic workflow dispatch."""
     secret = "e2e_webhook_secret_key"
     wh_yaml = f"""
@@ -222,10 +222,10 @@ triggers:
 
     # Process webhook event
     raw_body = b'{"action": "deploy", "env": "prod"}'
-    from strata.core.triggers.webhook import WebhookSignatureVerifier
+    from basalt.core.triggers.webhook import WebhookSignatureVerifier
 
     sig = WebhookSignatureVerifier.compute_signature(raw_body, secret)
-    headers = {"X-Strata-Signature": f"sha256={sig}"}
+    headers = {"X-Basalt-Signature": f"sha256={sig}"}
 
     result = await sqlite_engine.process_webhook_event(
         trigger_id="trig_e2e_wh",
@@ -239,7 +239,7 @@ triggers:
 
 
 @pytest.mark.asyncio
-async def test_end_to_end_fast_fail_on_step_failure(sqlite_engine: StrataEngine) -> None:
+async def test_end_to_end_fast_fail_on_step_failure(sqlite_engine: BasaltEngine) -> None:
     """Validate fast-fail behavior when a step fails, skipping downstream dependent steps."""
     fail_yaml = """
 id: e2e_fail_pipeline
@@ -271,7 +271,7 @@ steps:
 
 
 @pytest.mark.asyncio
-async def test_end_to_end_lifecycle_hooks_recording(sqlite_engine: StrataEngine) -> None:
+async def test_end_to_end_lifecycle_hooks_recording(sqlite_engine: BasaltEngine) -> None:
     """Validate lifecycle callback hooks triggered during workflow execution."""
     recorded_events: list[str] = []
 

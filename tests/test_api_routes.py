@@ -11,8 +11,8 @@ import httpx
 import pytest
 from httpx import ASGITransport
 
-from strata.api.app import create_app
-from strata.core.triggers.webhook import WebhookSignatureVerifier
+from basalt.api.app import create_app
+from basalt.core.triggers.webhook import WebhookSignatureVerifier
 
 
 @pytest.fixture
@@ -22,9 +22,9 @@ async def async_client(tmp_path) -> AsyncGenerator[httpx.AsyncClient, None]:
     db_url = f"sqlite+aiosqlite:///{db_file}"
 
     # Import and configure engine for tests
-    from strata.core.engine.engine import EngineConfig, StrataEngine, set_engine
+    from basalt.core.engine.engine import BasaltEngine, EngineConfig, set_engine
 
-    engine = StrataEngine(
+    engine = BasaltEngine(
         config=EngineConfig(db_url=db_url, use_memory_storage=False, enable_triggers=True)
     )
     set_engine(engine)
@@ -62,7 +62,7 @@ async def test_health_and_info_endpoints(async_client: httpx.AsyncClient) -> Non
     resp_info = await async_client.get("/info")
     assert resp_info.status_code == 200
     data_info = resp_info.json()
-    assert data_info["engine_name"] == "Strata Engine"
+    assert data_info["engine_name"] == "Basalt Engine"
     assert data_info["worker_concurrency"] > 0
 
     # 3. Metrics endpoint
@@ -270,7 +270,7 @@ triggers:
     raw_body = b'{"event": "user_created"}'
     sig = WebhookSignatureVerifier.compute_signature(raw_body, secret)
     headers = {
-        "X-Strata-Signature": f"sha256={sig}",
+        "X-Basalt-Signature": f"sha256={sig}",
         "Content-Type": "application/json",
     }
 
@@ -320,7 +320,7 @@ triggers:
 """
     await async_client.post("/api/v1/dags/", json={"spec": dag_yaml})
 
-    bad_headers = {"X-Strata-Signature": "sha256=invalid_signature_hash"}
+    bad_headers = {"X-Basalt-Signature": "sha256=invalid_signature_hash"}
     resp_unauth = await async_client.post(
         "/api/v1/webhooks/trig_auth_fail",
         content=b"{}",

@@ -51,12 +51,12 @@ jobs:
           context: .
           file: ./Dockerfile
           load: true
-          tags: strata:security-scan
+          tags: basalt:security-scan
 
       - name: Run Trivy Vulnerability Scanner
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: "strata:security-scan"
+          image-ref: "basalt:security-scan"
           format: "table"
           exit-code: "0"
           ignore-unfixed: true

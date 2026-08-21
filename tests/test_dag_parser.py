@@ -1,4 +1,4 @@
-"""Unit Tests for DAG Parser Module in Strata Workflow Engine.
+"""Unit Tests for DAG Parser Module in Basalt Workflow Engine.
 
 Validates JSON/YAML file parsing, string parsing, schema instantiation,
 error line reporting, serialization, directory scanning, and trigger validation.
@@ -9,9 +9,9 @@ from pathlib import Path
 
 import pytest
 
-from strata.core.dag.ast import DAGSpec, ExecutorType, TriggerType
-from strata.core.dag.exceptions import DAGParseError, DAGValidationError
-from strata.core.dag.parser import DAGParser, dump_dag_to_json, dump_dag_to_yaml
+from basalt.core.dag.ast import DAGSpec, ExecutorType, TriggerType
+from basalt.core.dag.exceptions import DAGParseError, DAGValidationError
+from basalt.core.dag.parser import DAGParser, dump_dag_to_json, dump_dag_to_yaml
 
 
 @pytest.fixture

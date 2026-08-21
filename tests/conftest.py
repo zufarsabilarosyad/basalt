@@ -1,7 +1,7 @@
-"""Master Pytest Shared Fixtures Subsystem for Strata Engine.
+"""Master Pytest Shared Fixtures Subsystem for Basalt Engine.
 
 Provides reusable pytest fixtures including temporary SQLite databases, initialized in-memory
-and SQLite StrataEngine instances, sample YAML/JSON workflow specifications, mock HTTP webhooks,
+and SQLite BasaltEngine instances, sample YAML/JSON workflow specifications, mock HTTP webhooks,
 and FastAPI AsyncClient test instances.
 """
 
@@ -11,25 +11,25 @@ import httpx
 import pytest
 from httpx import ASGITransport
 
-from strata.api.app import create_app
-from strata.core.dag.ast import DAGSpec
-from strata.core.dag.parser import DAGParser
-from strata.core.engine.engine import EngineConfig, StrataEngine, set_engine
-from strata.core.triggers.webhook import WebhookSignatureVerifier
+from basalt.api.app import create_app
+from basalt.core.dag.ast import DAGSpec
+from basalt.core.dag.parser import DAGParser
+from basalt.core.engine.engine import BasaltEngine, EngineConfig, set_engine
+from basalt.core.triggers.webhook import WebhookSignatureVerifier
 
 
 @pytest.fixture
 def tmp_sqlite_url(tmp_path) -> str:
     """Fixture providing temporary SQLite database URL for isolation."""
-    db_file = tmp_path / "test_strata.db"
+    db_file = tmp_path / "test_basalt.db"
     return f"sqlite+aiosqlite:///{db_file}"
 
 
 @pytest.fixture
-async def memory_engine() -> AsyncGenerator[StrataEngine, None]:
-    """Fixture providing started StrataEngine instance in in-memory mode."""
+async def memory_engine() -> AsyncGenerator[BasaltEngine, None]:
+    """Fixture providing started BasaltEngine instance in in-memory mode."""
     config = EngineConfig(use_memory_storage=True, enable_triggers=True)
-    engine = StrataEngine(config=config)
+    engine = BasaltEngine(config=config)
     set_engine(engine)
     await engine.start()
     yield engine
@@ -38,10 +38,10 @@ async def memory_engine() -> AsyncGenerator[StrataEngine, None]:
 
 
 @pytest.fixture
-async def sqlite_engine(tmp_sqlite_url: str) -> AsyncGenerator[StrataEngine, None]:
-    """Fixture providing started StrataEngine instance backed by SQLite database."""
+async def sqlite_engine(tmp_sqlite_url: str) -> AsyncGenerator[BasaltEngine, None]:
+    """Fixture providing started BasaltEngine instance backed by SQLite database."""
     config = EngineConfig(db_url=tmp_sqlite_url, use_memory_storage=False, enable_triggers=True)
-    engine = StrataEngine(config=config)
+    engine = BasaltEngine(config=config)
     set_engine(engine)
     await engine.start()
     yield engine
@@ -50,7 +50,7 @@ async def sqlite_engine(tmp_sqlite_url: str) -> AsyncGenerator[StrataEngine, Non
 
 
 @pytest.fixture
-async def api_client(sqlite_engine: StrataEngine) -> AsyncGenerator[httpx.AsyncClient, None]:
+async def api_client(sqlite_engine: BasaltEngine) -> AsyncGenerator[httpx.AsyncClient, None]:
     """Fixture providing httpx.AsyncClient connected to FastAPI app with active SQLite engine."""
     app = create_app()
     async with httpx.AsyncClient(
@@ -191,7 +191,7 @@ def make_webhook_headers():
     def _gen_headers(body: bytes, secret: str) -> dict[str, str]:
         sig = WebhookSignatureVerifier.compute_signature(body, secret)
         return {
-            "X-Strata-Signature": f"sha256={sig}",
+            "X-Basalt-Signature": f"sha256={sig}",
             "Content-Type": "application/json",
         }
 

@@ -6,7 +6,7 @@ tracking, retry boundaries, terminal predicates, matrix coverage, and overall wo
 
 import pytest
 
-from strata.core.engine.state_machine import (
+from basalt.core.engine.state_machine import (
     InvalidStateTransitionError,
     StateMachine,
     StepExecutionRecord,
