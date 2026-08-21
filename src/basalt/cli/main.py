@@ -1,8 +1,8 @@
 """Basalt Embedded Event-Driven Workflow & DAG Execution Engine Command Line Interface (CLI).
 
-Master CLI entrypoint assembling Click command groups for workflow DAG validation & management ('strata dag'),
-workflow execution runs & logs ('strata run'), API server administration ('strata server'),
-workspace project initialization ('strata init'), and system environment diagnostics ('strata doctor').
+Master CLI entrypoint assembling Click command groups for workflow DAG validation & management ('basalt dag'),
+workflow execution runs & logs ('basalt run'), API server administration ('basalt server'),
+workspace project initialization ('basalt init'), and system environment diagnostics ('basalt doctor').
 """
 
 import importlib.util
@@ -20,12 +20,12 @@ logger = get_logger("basalt.cli")
 
 BASALT_VERSION = "1.0.0"
 BASALT_BANNER = rf"""
-   _____ _____ _____  ___ _____  ___ 
-  /  ___|_   _| ___ \/ _ \_   _|/ _ \
-  \ `--.  | | | |_/ / /_\ \| | / /_\ \
-   `--. \ | | |    /|  _  || | |  _  |
-  /\__/ / | | | |\ \| | | || | | | | |
-  \____/  \_/ \_| \_\_| |_/\_/ \_| |_/
+  ______                 _ _   
+  | ___ \               | | |  
+  | |_/ / __ _ ___  __ _| | |_ 
+  | ___ \/ _` / __|/ _` | | __|
+  | |_/ / (_| \__ \ (_| | | |_ 
+  \____/ \__,_|___/\__,_|_|\__|
   Embedded Event-Driven DAG Engine v{BASALT_VERSION}
 """
 
