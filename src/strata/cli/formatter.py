@@ -63,7 +63,9 @@ class CLIFormatter:
         for row in string_rows:
             # Fill missing cells if row length mismatch
             padded_row = row + [""] * (len(headers) - len(row))
-            row_str = "| " + " | ".join(f"{val:<{w}}" for val, w in zip(padded_row, col_widths)) + " |"
+            row_str = (
+                "| " + " | ".join(f"{val:<{w}}" for val, w in zip(padded_row, col_widths)) + " |"
+            )
             lines.append(row_str)
 
         lines.append(divider)
@@ -163,7 +165,10 @@ class CLIFormatter:
             ["State", result.state.value.upper()],
             ["Duration (ms)", f"{result.duration_ms:.2f}"],
             ["Start Time", result.start_time.strftime("%Y-%m-%d %H:%M:%S UTC")],
-            ["End Time", result.end_time.strftime("%Y-%m-%d %H:%M:%S UTC") if result.end_time else "N/A"],
+            [
+                "End Time",
+                result.end_time.strftime("%Y-%m-%d %H:%M:%S UTC") if result.end_time else "N/A",
+            ],
             ["Error Message", result.error_message or "None"],
         ]
 

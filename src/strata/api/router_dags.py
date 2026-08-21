@@ -44,8 +44,8 @@ def _to_dag_response(dag: DAGSpec) -> DAGResponse:
         tags=dag.tags,
         step_count=len(dag.steps),
         trigger_count=len(dag.triggers),
-        created_at=dag.created_at,
-        updated_at=dag.updated_at,
+        created_at=getattr(dag, "created_at", None),
+        updated_at=getattr(dag, "updated_at", None),
     )
 
 
@@ -56,8 +56,14 @@ def _to_dag_response(dag: DAGSpec) -> DAGResponse:
     summary="Register a new Workflow DAG",
     description="Parses YAML or JSON workflow specification, validates topological DAG structure, and persists definition.",
     responses={
-        400: {"model": ErrorResponse, "description": "Syntax or validation error in DAG specification."},
-        409: {"model": ErrorResponse, "description": "Workflow DAG with given ID already registered."},
+        400: {
+            "model": ErrorResponse,
+            "description": "Syntax or validation error in DAG specification.",
+        },
+        409: {
+            "model": ErrorResponse,
+            "description": "Workflow DAG with given ID already registered.",
+        },
     },
 )
 async def register_dag(
@@ -67,7 +73,7 @@ async def register_dag(
     """Register or update a workflow DAG specification."""
     try:
         dag = await engine.register_dag(
-            spec=payload.spec,
+            dag_input=payload.spec,
             overwrite=payload.overwrite,
         )
         logger.info(f"API registered workflow DAG '{dag.id}'")
@@ -92,7 +98,7 @@ async def register_dag(
 async def validate_dag_spec(payload: DAGRegisterRequest) -> dict[str, Any]:
     """Validate YAML/JSON workflow specification without persisting."""
     try:
-        dag = DAGParser.parse(payload.spec)
+        dag = DAGParser.parse_string(payload.spec)
         DAGValidator.validate_dag(dag)
         stages = DAGSorter.get_execution_levels(dag)
 
@@ -193,10 +199,12 @@ async def get_dag_graph(
 
     stages_repr = []
     for level_idx, level_steps in enumerate(execution_levels):
-        stages_repr.append({
-            "stage": level_idx + 1,
-            "parallel_step_ids": [s.id for s in level_steps],
-        })
+        stages_repr.append(
+            {
+                "stage": level_idx + 1,
+                "parallel_step_ids": [s.id for s in level_steps],
+            }
+        )
 
     return {
         "dag_id": dag.id,

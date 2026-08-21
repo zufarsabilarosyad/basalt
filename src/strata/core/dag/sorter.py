@@ -15,7 +15,7 @@ logger = get_logger(__name__)
 
 # DFS node coloring constants for cycle detection
 COLOR_WHITE = 0  # Unvisited
-COLOR_GRAY = 1   # Visiting (in current recursion stack)
+COLOR_GRAY = 1  # Visiting (in current recursion stack)
 COLOR_BLACK = 2  # Visited (fully processed)
 
 

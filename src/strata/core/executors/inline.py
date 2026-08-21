@@ -85,9 +85,7 @@ class PythonInlineExecutor(BaseExecutor):
                     # Run sync function in thread pool to prevent blocking event loop
                     loop = asyncio.get_running_loop()
                     try:
-                        raw_result = await loop.run_in_executor(
-                            None, lambda: func(**kwargs)
-                        )
+                        raw_result = await loop.run_in_executor(None, lambda: func(**kwargs))
                     except TypeError as err:
                         if "takes no keyword arguments" in str(err):
                             raw_result = await loop.run_in_executor(
@@ -96,9 +94,7 @@ class PythonInlineExecutor(BaseExecutor):
                         else:
                             raise
 
-                logger.debug(
-                    f"Step '{step.id}' python inline function finished successfully"
-                )
+                logger.debug(f"Step '{step.id}' python inline function finished successfully")
 
                 if isinstance(raw_result, dict):
                     return self.sanitize_output(raw_result)
@@ -148,7 +144,9 @@ class PythonInlineExecutor(BaseExecutor):
                 module = importlib.import_module(mod_name)
                 func = getattr(module, fn_name)
                 if not callable(func):
-                    raise ValueError(f"Attribute '{fn_name}' in module '{mod_name}' is not callable.")
+                    raise ValueError(
+                        f"Attribute '{fn_name}' in module '{mod_name}' is not callable."
+                    )
                 return func
             except Exception as exc:
                 raise ExecutorError(
@@ -175,9 +173,7 @@ class PythonInlineExecutor(BaseExecutor):
 
         # 1. Process explicit parameters passed in step AST
         explicit_params = step.parameters or {}
-        interpolated_params = ExpressionEvaluator.interpolate_value(
-            explicit_params, context
-        )
+        interpolated_params = ExpressionEvaluator.interpolate_value(explicit_params, context)
 
         for param_name, param in sig.parameters.items():
             # Inject context if requested in signature

@@ -139,11 +139,14 @@ def test_webhook_signature_verifier_and_trigger() -> None:
     assert len(signature) == 64
 
     # Verify signature match
-    assert WebhookSignatureVerifier.verify_signature(
-        payload_bytes=raw_body,
-        secret=secret,
-        signature_header=f"sha256={signature}",
-    ) is True
+    assert (
+        WebhookSignatureVerifier.verify_signature(
+            payload_bytes=raw_body,
+            secret=secret,
+            signature_header=f"sha256={signature}",
+        )
+        is True
+    )
 
     # WebhookTrigger processing
     trig = create_webhook_trigger("wh_trig", dag_id="dag_wh", secret=secret)

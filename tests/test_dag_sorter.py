@@ -153,7 +153,9 @@ def test_critical_path_calculation() -> None:
             StepSpec(id="start", command="echo start", timeout_seconds=10.0),
             StepSpec(id="path1", command="echo fast", depends_on=["start"], timeout_seconds=5.0),
             StepSpec(id="path2", command="echo slow", depends_on=["start"], timeout_seconds=50.0),
-            StepSpec(id="end", command="echo end", depends_on=["path1", "path2"], timeout_seconds=10.0),
+            StepSpec(
+                id="end", command="echo end", depends_on=["path1", "path2"], timeout_seconds=10.0
+            ),
         ],
     )
 

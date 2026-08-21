@@ -63,27 +63,43 @@ def validate_dag_cmd(filepath: str, output_format: str) -> None:
     except StrataError as exc:
         click.secho(f"✖ Validation Error: [{exc.code}] {exc.message}", fg="red", err=True)
         if fmt == OutputFormat.JSON:
-            click.echo(CLIFormatter.format_json({"valid": False, "error": exc.message, "code": exc.code}))
+            click.echo(
+                CLIFormatter.format_json({"valid": False, "error": exc.message, "code": exc.code})
+            )
         raise click.Abort()
     except Exception as exc:
         click.secho(f"✖ Unexpected Validation Failure: {exc}", fg="red", err=True)
         raise click.Abort()
 
 
-@dag_group.command(name="register", help="Register or update a workflow DAG in database repository.")
+@dag_group.command(
+    name="register", help="Register or update a workflow DAG in database repository."
+)
 @click.argument("filepath", type=click.Path(exists=True, dir_okay=False))
-@click.option("--db-url", envvar="STRATA_DB_URL", default=None, help="SQLite database connection URL.")
-@click.option("--overwrite/--no-overwrite", default=True, help="Overwrite existing registered DAG with same ID.")
+@click.option(
+    "--db-url", envvar="STRATA_DB_URL", default=None, help="SQLite database connection URL."
+)
+@click.option(
+    "--overwrite/--no-overwrite",
+    default=True,
+    help="Overwrite existing registered DAG with same ID.",
+)
 def register_dag_cmd(filepath: str, db_url: str | None, overwrite: bool) -> None:
     """Register workflow DAG specification into database storage."""
 
     async def _impl():
-        config = EngineConfig(db_url=db_url, enable_triggers=False) if db_url else EngineConfig(use_memory_storage=True)
+        config = (
+            EngineConfig(db_url=db_url, enable_triggers=False)
+            if db_url
+            else EngineConfig(use_memory_storage=True)
+        )
         async with StrataEngine(config=config) as engine:
             with open(filepath, encoding="utf-8") as f:
                 content = f.read()
             dag = await engine.register_dag(content, overwrite=overwrite)
-            click.secho(f"✔ Successfully registered DAG '{dag.id}' ({dag.name})", fg="green", bold=True)
+            click.secho(
+                f"✔ Successfully registered DAG '{dag.id}' ({dag.name})", fg="green", bold=True
+            )
 
     try:
         _run_async(_impl())
@@ -94,7 +110,9 @@ def register_dag_cmd(filepath: str, db_url: str | None, overwrite: bool) -> None
 
 @dag_group.command(name="list", help="List registered workflow DAGs.")
 @click.option("--tag", "-t", default=None, help="Filter workflows by tag.")
-@click.option("--db-url", envvar="STRATA_DB_URL", default=None, help="SQLite database connection URL.")
+@click.option(
+    "--db-url", envvar="STRATA_DB_URL", default=None, help="SQLite database connection URL."
+)
 @click.option(
     "--format",
     "-f",
@@ -108,7 +126,11 @@ def list_dags_cmd(tag: str | None, db_url: str | None, output_format: str) -> No
     fmt = OutputFormat(output_format)
 
     async def _impl():
-        config = EngineConfig(db_url=db_url, enable_triggers=False) if db_url else EngineConfig(use_memory_storage=True)
+        config = (
+            EngineConfig(db_url=db_url, enable_triggers=False)
+            if db_url
+            else EngineConfig(use_memory_storage=True)
+        )
         async with StrataEngine(config=config) as engine:
             dags = await engine.list_dags(tag=tag)
             click.echo(CLIFormatter.format_dag_list(dags, output_format=fmt))
@@ -122,7 +144,9 @@ def list_dags_cmd(tag: str | None, db_url: str | None, output_format: str) -> No
 
 @dag_group.command(name="inspect", help="Inspect a registered workflow DAG definition.")
 @click.argument("dag_id")
-@click.option("--db-url", envvar="STRATA_DB_URL", default=None, help="SQLite database connection URL.")
+@click.option(
+    "--db-url", envvar="STRATA_DB_URL", default=None, help="SQLite database connection URL."
+)
 @click.option(
     "--format",
     "-f",
@@ -136,7 +160,11 @@ def inspect_dag_cmd(dag_id: str, db_url: str | None, output_format: str) -> None
     fmt = OutputFormat(output_format)
 
     async def _impl():
-        config = EngineConfig(db_url=db_url, enable_triggers=False) if db_url else EngineConfig(use_memory_storage=True)
+        config = (
+            EngineConfig(db_url=db_url, enable_triggers=False)
+            if db_url
+            else EngineConfig(use_memory_storage=True)
+        )
         async with StrataEngine(config=config) as engine:
             dag = await engine.get_dag(dag_id)
             if not dag:
@@ -155,13 +183,26 @@ def inspect_dag_cmd(dag_id: str, db_url: str | None, output_format: str) -> None
 
 @dag_group.command(name="export", help="Export a registered workflow DAG specification to JSON.")
 @click.argument("dag_id")
-@click.option("--output", "-o", "output_path", type=click.Path(dir_okay=False), required=True, help="Destination output file path.")
-@click.option("--db-url", envvar="STRATA_DB_URL", default=None, help="SQLite database connection URL.")
+@click.option(
+    "--output",
+    "-o",
+    "output_path",
+    type=click.Path(dir_okay=False),
+    required=True,
+    help="Destination output file path.",
+)
+@click.option(
+    "--db-url", envvar="STRATA_DB_URL", default=None, help="SQLite database connection URL."
+)
 def export_dag_cmd(dag_id: str, output_path: str, db_url: str | None) -> None:
     """Export registered workflow DAG AST model to JSON file."""
 
     async def _impl():
-        config = EngineConfig(db_url=db_url, enable_triggers=False) if db_url else EngineConfig(use_memory_storage=True)
+        config = (
+            EngineConfig(db_url=db_url, enable_triggers=False)
+            if db_url
+            else EngineConfig(use_memory_storage=True)
+        )
         async with StrataEngine(config=config) as engine:
             dag = await engine.get_dag(dag_id)
             if not dag:
@@ -184,12 +225,18 @@ def export_dag_cmd(dag_id: str, output_path: str, db_url: str | None) -> None:
 
 @dag_group.command(name="delete", help="Delete a registered workflow DAG.")
 @click.argument("dag_id")
-@click.option("--db-url", envvar="STRATA_DB_URL", default=None, help="SQLite database connection URL.")
+@click.option(
+    "--db-url", envvar="STRATA_DB_URL", default=None, help="SQLite database connection URL."
+)
 def delete_dag_cmd(dag_id: str, db_url: str | None) -> None:
     """Delete registered workflow DAG definition."""
 
     async def _impl():
-        config = EngineConfig(db_url=db_url, enable_triggers=False) if db_url else EngineConfig(use_memory_storage=True)
+        config = (
+            EngineConfig(db_url=db_url, enable_triggers=False)
+            if db_url
+            else EngineConfig(use_memory_storage=True)
+        )
         async with StrataEngine(config=config) as engine:
             deleted = await engine.delete_dag(dag_id)
             if deleted:

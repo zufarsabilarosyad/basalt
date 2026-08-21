@@ -180,9 +180,7 @@ class StepRunModel(Base):
     # Relationships
     dag_run: Mapped["DAGRunModel"] = relationship("DAGRunModel", back_populates="step_runs")
 
-    __table_args__ = (
-        Index("idx_step_runs_run_step", "run_id", "step_id"),
-    )
+    __table_args__ = (Index("idx_step_runs_run_step", "run_id", "step_id"),)
 
     @property
     def output(self) -> Any | None:

@@ -207,7 +207,12 @@ def test_aggregate_workflow_state() -> None:
 
 def test_terminal_states_reject_all_further_transitions() -> None:
     """Verify terminal workflow states reject all further state transitions."""
-    terminal_states = [WorkflowState.COMPLETED, WorkflowState.FAILED, WorkflowState.CANCELLED, WorkflowState.TIMEOUT]
+    terminal_states = [
+        WorkflowState.COMPLETED,
+        WorkflowState.FAILED,
+        WorkflowState.CANCELLED,
+        WorkflowState.TIMEOUT,
+    ]
     target_states = list(WorkflowState)
 
     for term in terminal_states:

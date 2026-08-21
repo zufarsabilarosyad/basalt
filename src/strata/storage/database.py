@@ -49,7 +49,9 @@ class DatabaseManager:
         """Ensure database URL uses sqlite+aiosqlite driver prefix."""
         if url.startswith("sqlite://"):
             return url.replace("sqlite://", "sqlite+aiosqlite://", 1)
-        if not url.startswith("sqlite+aiosqlite://") and not url.startswith("postgresql+asyncpg://"):
+        if not url.startswith("sqlite+aiosqlite://") and not url.startswith(
+            "postgresql+asyncpg://"
+        ):
             return f"sqlite+aiosqlite:///{url}"
         return url
 

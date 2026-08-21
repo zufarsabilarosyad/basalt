@@ -27,11 +27,17 @@ def run_group() -> None:
     pass
 
 
-@run_group.command(name="start", help="Start execution of a workflow DAG from file or registered ID.")
+@run_group.command(
+    name="start", help="Start execution of a workflow DAG from file or registered ID."
+)
 @click.argument("target")
-@click.option("--inputs", "-i", default=None, help="JSON input parameters string (e.g. '{\"x\": 42}').")
+@click.option(
+    "--inputs", "-i", default=None, help="JSON input parameters string (e.g. '{\"x\": 42}')."
+)
 @click.option("--run-id", default=None, help="Optional custom run identifier.")
-@click.option("--db-url", envvar="STRATA_DB_URL", default=None, help="SQLite database connection URL.")
+@click.option(
+    "--db-url", envvar="STRATA_DB_URL", default=None, help="SQLite database connection URL."
+)
 @click.option(
     "--format",
     "-f",
@@ -52,7 +58,11 @@ def start_run_cmd(
     input_dict = json.loads(inputs) if inputs else None
 
     async def _impl():
-        config = EngineConfig(db_url=db_url, enable_triggers=False) if db_url else EngineConfig(use_memory_storage=True)
+        config = (
+            EngineConfig(db_url=db_url, enable_triggers=False)
+            if db_url
+            else EngineConfig(use_memory_storage=True)
+        )
         async with StrataEngine(config=config) as engine:
             # Check if target is a file path that exists
             if os.path.isfile(target):
@@ -67,9 +77,17 @@ def start_run_cmd(
             result = await engine.run_dag(target_id, inputs=input_dict, run_id=run_id)
 
             if result.state == WorkflowState.COMPLETED:
-                click.secho(f"✔ Workflow run '{result.run_id}' COMPLETED successfully!", fg="green", bold=True)
+                click.secho(
+                    f"✔ Workflow run '{result.run_id}' COMPLETED successfully!",
+                    fg="green",
+                    bold=True,
+                )
             else:
-                click.secho(f"✖ Workflow run '{result.run_id}' finished in state '{result.state.value.upper()}'", fg="red", bold=True)
+                click.secho(
+                    f"✖ Workflow run '{result.run_id}' finished in state '{result.state.value.upper()}'",
+                    fg="red",
+                    bold=True,
+                )
 
             click.echo(CLIFormatter.format_run_result(result, output_format=fmt))
 
@@ -82,7 +100,9 @@ def start_run_cmd(
 
 @run_group.command(name="status", help="Get execution status for a specific run ID.")
 @click.argument("run_id")
-@click.option("--db-url", envvar="STRATA_DB_URL", default=None, help="SQLite database connection URL.")
+@click.option(
+    "--db-url", envvar="STRATA_DB_URL", default=None, help="SQLite database connection URL."
+)
 @click.option(
     "--format",
     "-f",
@@ -96,7 +116,11 @@ def get_run_status_cmd(run_id: str, db_url: str | None, output_format: str) -> N
     fmt = OutputFormat(output_format)
 
     async def _impl():
-        config = EngineConfig(db_url=db_url, enable_triggers=False) if db_url else EngineConfig(use_memory_storage=True)
+        config = (
+            EngineConfig(db_url=db_url, enable_triggers=False)
+            if db_url
+            else EngineConfig(use_memory_storage=True)
+        )
         async with StrataEngine(config=config) as engine:
             result = await engine.get_run_result(run_id)
             if not result:
@@ -113,10 +137,14 @@ def get_run_status_cmd(run_id: str, db_url: str | None, output_format: str) -> N
         raise click.Abort()
 
 
-@run_group.command(name="step", help="Inspect step output payload for a specific run ID and step ID.")
+@run_group.command(
+    name="step", help="Inspect step output payload for a specific run ID and step ID."
+)
 @click.argument("run_id")
 @click.argument("step_id")
-@click.option("--db-url", envvar="STRATA_DB_URL", default=None, help="SQLite database connection URL.")
+@click.option(
+    "--db-url", envvar="STRATA_DB_URL", default=None, help="SQLite database connection URL."
+)
 @click.option(
     "--format",
     "-f",
@@ -130,7 +158,11 @@ def get_step_output_cmd(run_id: str, step_id: str, db_url: str | None, output_fo
     fmt = OutputFormat(output_format)
 
     async def _impl():
-        config = EngineConfig(db_url=db_url, enable_triggers=False) if db_url else EngineConfig(use_memory_storage=True)
+        config = (
+            EngineConfig(db_url=db_url, enable_triggers=False)
+            if db_url
+            else EngineConfig(use_memory_storage=True)
+        )
         async with StrataEngine(config=config) as engine:
             result = await engine.get_run_result(run_id)
             if not result:
@@ -138,7 +170,9 @@ def get_step_output_cmd(run_id: str, step_id: str, db_url: str | None, output_fo
                 raise click.Abort()
 
             if step_id not in result.step_states:
-                click.secho(f"✖ Step ID '{step_id}' was not executed in run '{run_id}'.", fg="red", err=True)
+                click.secho(
+                    f"✖ Step ID '{step_id}' was not executed in run '{run_id}'.", fg="red", err=True
+                )
                 raise click.Abort()
 
             step_data = {
@@ -161,8 +195,12 @@ def get_step_output_cmd(run_id: str, step_id: str, db_url: str | None, output_fo
 
 @run_group.command(name="list", help="List workflow execution run logs.")
 @click.option("--dag-id", "-d", default=None, help="Filter run logs by DAG ID.")
-@click.option("--state", "-s", default=None, help="Filter run logs by state (completed, failed, etc).")
-@click.option("--db-url", envvar="STRATA_DB_URL", default=None, help="SQLite database connection URL.")
+@click.option(
+    "--state", "-s", default=None, help="Filter run logs by state (completed, failed, etc)."
+)
+@click.option(
+    "--db-url", envvar="STRATA_DB_URL", default=None, help="SQLite database connection URL."
+)
 @click.option(
     "--format",
     "-f",
@@ -182,7 +220,11 @@ def list_runs_cmd(
     target_state = WorkflowState(state.lower()) if state else None
 
     async def _impl():
-        config = EngineConfig(db_url=db_url, enable_triggers=False) if db_url else EngineConfig(use_memory_storage=True)
+        config = (
+            EngineConfig(db_url=db_url, enable_triggers=False)
+            if db_url
+            else EngineConfig(use_memory_storage=True)
+        )
         async with StrataEngine(config=config) as engine:
             runs = await engine.list_run_results(dag_id=dag_id, state=target_state)
             click.echo(CLIFormatter.format_run_list(runs, output_format=fmt))
@@ -196,18 +238,27 @@ def list_runs_cmd(
 
 @run_group.command(name="cancel", help="Cancel an active workflow run.")
 @click.argument("run_id")
-@click.option("--db-url", envvar="STRATA_DB_URL", default=None, help="SQLite database connection URL.")
+@click.option(
+    "--db-url", envvar="STRATA_DB_URL", default=None, help="SQLite database connection URL."
+)
 def cancel_run_cmd(run_id: str, db_url: str | None) -> None:
     """Request cancellation for active workflow run."""
 
     async def _impl():
-        config = EngineConfig(db_url=db_url, enable_triggers=False) if db_url else EngineConfig(use_memory_storage=True)
+        config = (
+            EngineConfig(db_url=db_url, enable_triggers=False)
+            if db_url
+            else EngineConfig(use_memory_storage=True)
+        )
         async with StrataEngine(config=config) as engine:
             cancelled = engine.runner.cancel_run(run_id)
             if cancelled:
                 click.secho(f"✔ Sent cancellation signal to active run '{run_id}'.", fg="green")
             else:
-                click.secho(f"✖ Run ID '{run_id}' is not active or cannot be cancelled.", fg="red", err=True)
+                click.secho(
+                    f"✖ Run ID '{run_id}' is not active or cannot be cancelled.", fg="red", err=True
+                )
+                raise click.Abort()
 
     try:
         _run_async(_impl())
@@ -218,7 +269,9 @@ def cancel_run_cmd(run_id: str, db_url: str | None) -> None:
 
 @run_group.command(name="retry", help="Retry a failed workflow run.")
 @click.argument("run_id")
-@click.option("--db-url", envvar="STRATA_DB_URL", default=None, help="SQLite database connection URL.")
+@click.option(
+    "--db-url", envvar="STRATA_DB_URL", default=None, help="SQLite database connection URL."
+)
 @click.option(
     "--format",
     "-f",
@@ -232,15 +285,27 @@ def retry_run_cmd(run_id: str, db_url: str | None, output_format: str) -> None:
     fmt = OutputFormat(output_format)
 
     async def _impl():
-        config = EngineConfig(db_url=db_url, enable_triggers=False) if db_url else EngineConfig(use_memory_storage=True)
+        config = (
+            EngineConfig(db_url=db_url, enable_triggers=False)
+            if db_url
+            else EngineConfig(use_memory_storage=True)
+        )
         async with StrataEngine(config=config) as engine:
             original = await engine.get_run_result(run_id)
             if not original:
                 click.secho(f"✖ Execution run ID '{run_id}' not found.", fg="red", err=True)
                 raise click.Abort()
 
-            if original.state not in (WorkflowState.FAILED, WorkflowState.TIMEOUT, WorkflowState.CANCELLED):
-                click.secho(f"✖ Run '{run_id}' is in state '{original.state.value}' and cannot be retried.", fg="red", err=True)
+            if original.state not in (
+                WorkflowState.FAILED,
+                WorkflowState.TIMEOUT,
+                WorkflowState.CANCELLED,
+            ):
+                click.secho(
+                    f"✖ Run '{run_id}' is in state '{original.state.value}' and cannot be retried.",
+                    fg="red",
+                    err=True,
+                )
                 raise click.Abort()
 
             click.echo(f"Retrying failed run '{run_id}' for DAG '{original.dag_id}'...")

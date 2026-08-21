@@ -138,7 +138,9 @@ class RetryHandler:
                     try:
                         on_retry_callback(attempt, exc, delay)
                     except Exception as cb_exc:
-                        logger.warning(f"Retry callback raised error for step '{step_id}': {cb_exc}")
+                        logger.warning(
+                            f"Retry callback raised error for step '{step_id}': {cb_exc}"
+                        )
 
                 logger.debug(f"Step '{step_id}' sleeping {delay:.3f}s before attempt {attempt + 1}")
                 await asyncio.sleep(delay)

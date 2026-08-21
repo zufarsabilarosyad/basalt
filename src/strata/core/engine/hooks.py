@@ -32,7 +32,9 @@ class LifecycleEvent(str, Enum):
 
 
 # Type alias for sync or async hook callback functions
-HookCallback = Callable[[LifecycleEvent, ExecutionContext, dict[str, Any] | None], None | Awaitable[None]]
+HookCallback = Callable[
+    [LifecycleEvent, ExecutionContext, dict[str, Any] | None], None | Awaitable[None]
+]
 
 
 class HookRegistry:

@@ -4,7 +4,6 @@ Provides deep structural validation of DAG definitions, verifying step ID unique
 detecting orphan dependencies, checking self-referential steps, and verifying executor configs.
 """
 
-
 from strata.core.dag.ast import DAGSpec, ExecutorType
 from strata.core.dag.exceptions import (
     DAGValidationError,
@@ -144,7 +143,9 @@ class DAGValidator:
                         dag_id=dag.id,
                     )
             elif step.executor_type == ExecutorType.HTTP:
-                if not step.url or not (step.url.startswith("http://") or step.url.startswith("https://")):
+                if not step.url or not (
+                    step.url.startswith("http://") or step.url.startswith("https://")
+                ):
                     raise InvalidExecutorConfigError(
                         step_id=step.id,
                         executor_type="http",

@@ -79,7 +79,9 @@ def version_cmd() -> None:
     click.echo(f"Python Version: {sys.version.split()[0]}")
 
 
-@cli.command(name="init", help="Initialize a new Strata workflow project workspace with sample DAG.")
+@cli.command(
+    name="init", help="Initialize a new Strata workflow project workspace with sample DAG."
+)
 @click.option("--directory", "-d", default=".", help="Target workspace directory path.")
 def init_cmd(directory: str) -> None:
     """Scaffold a new Strata project workspace with example workflow specification."""

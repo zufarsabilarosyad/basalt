@@ -125,7 +125,12 @@ class HTTPExecutor(BaseExecutor):
             logger.debug(f"Step '{step.id}' making HTTP {method} request to '{raw_url}'")
 
             try:
-                status_code, response_text, resp_headers, parsed_json = await make_http_request_direct(
+                (
+                    status_code,
+                    response_text,
+                    resp_headers,
+                    parsed_json,
+                ) = await make_http_request_direct(
                     url=raw_url,
                     method=method,
                     headers=headers,

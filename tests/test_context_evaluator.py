@@ -121,15 +121,35 @@ def test_expression_interpolator_complex_dict_payload(context: ExecutionContext)
 def test_evaluate_condition_comparisons(context: ExecutionContext) -> None:
     """Verify safe boolean condition expression evaluations."""
     # Equal comparison
-    assert ExpressionEvaluator.evaluate_condition("${steps.fetch_step.output.status_code} == 200", context) is True
-    assert ExpressionEvaluator.evaluate_condition("${steps.fetch_step.output.status_code} == 500", context) is False
+    assert (
+        ExpressionEvaluator.evaluate_condition(
+            "${steps.fetch_step.output.status_code} == 200", context
+        )
+        is True
+    )
+    assert (
+        ExpressionEvaluator.evaluate_condition(
+            "${steps.fetch_step.output.status_code} == 500", context
+        )
+        is False
+    )
 
     # Not equal comparison
     assert ExpressionEvaluator.evaluate_condition("${inputs.mode} != 'staging'", context) is True
 
     # Numeric greater than / less than
-    assert ExpressionEvaluator.evaluate_condition("${steps.fetch_step.output.item_count} > 100", context) is True
-    assert ExpressionEvaluator.evaluate_condition("${steps.fetch_step.output.item_count} <= 50", context) is False
+    assert (
+        ExpressionEvaluator.evaluate_condition(
+            "${steps.fetch_step.output.item_count} > 100", context
+        )
+        is True
+    )
+    assert (
+        ExpressionEvaluator.evaluate_condition(
+            "${steps.fetch_step.output.item_count} <= 50", context
+        )
+        is False
+    )
 
     # Boolean shortcuts
     assert ExpressionEvaluator.evaluate_condition("true", context) is True
@@ -140,11 +160,28 @@ def test_evaluate_condition_comparisons(context: ExecutionContext) -> None:
 def test_evaluate_condition_complex_logic(context: ExecutionContext) -> None:
     """Verify logical AND, OR, NOT and IN operators in condition evaluator."""
     # AND / OR logic
-    assert ExpressionEvaluator.evaluate_condition("${steps.fetch_step.output.status_code} == 200 and ${steps.fetch_step.output.item_count} > 100", context) is True
-    assert ExpressionEvaluator.evaluate_condition("${steps.fetch_step.output.status_code} == 500 or ${inputs.mode} == 'production'", context) is True
+    assert (
+        ExpressionEvaluator.evaluate_condition(
+            "${steps.fetch_step.output.status_code} == 200 and ${steps.fetch_step.output.item_count} > 100",
+            context,
+        )
+        is True
+    )
+    assert (
+        ExpressionEvaluator.evaluate_condition(
+            "${steps.fetch_step.output.status_code} == 500 or ${inputs.mode} == 'production'",
+            context,
+        )
+        is True
+    )
 
     # NOT logic
-    assert ExpressionEvaluator.evaluate_condition("not (${steps.fetch_step.output.status_code} == 500)", context) is True
+    assert (
+        ExpressionEvaluator.evaluate_condition(
+            "not (${steps.fetch_step.output.status_code} == 500)", context
+        )
+        is True
+    )
 
 
 def test_evaluate_condition_fallback_parser(context: ExecutionContext) -> None:
@@ -172,7 +209,9 @@ async def test_hook_registry_dispatch(context: ExecutionContext) -> None:
         events_triggered.append(f"sync_{payload.get('step_id')}")
 
     @registry.on_step_failure
-    async def async_failure_hook(event: LifecycleEvent, ctx: ExecutionContext, payload: dict) -> None:
+    async def async_failure_hook(
+        event: LifecycleEvent, ctx: ExecutionContext, payload: dict
+    ) -> None:
         events_triggered.append(f"async_{payload.get('step_id')}")
 
     assert registry.has_hooks(LifecycleEvent.STEP_SUCCESS) is True
@@ -194,25 +233,32 @@ async def test_hook_registry_all_decorators() -> None:
     registry = HookRegistry()
 
     @registry.on_workflow_start
-    def h1(e, c, p): pass
+    def h1(e, c, p):
+        pass
 
     @registry.on_workflow_success
-    def h2(e, c, p): pass
+    def h2(e, c, p):
+        pass
 
     @registry.on_workflow_failure
-    def h3(e, c, p): pass
+    def h3(e, c, p):
+        pass
 
     @registry.on_workflow_cancelled
-    def h4(e, c, p): pass
+    def h4(e, c, p):
+        pass
 
     @registry.on_step_start
-    def h5(e, c, p): pass
+    def h5(e, c, p):
+        pass
 
     @registry.on_step_retry
-    def h6(e, c, p): pass
+    def h6(e, c, p):
+        pass
 
     @registry.on_step_skipped
-    def h7(e, c, p): pass
+    def h7(e, c, p):
+        pass
 
     assert len(registry.get_registered_hooks(LifecycleEvent.WORKFLOW_START)) == 1
     assert len(registry.get_registered_hooks(LifecycleEvent.WORKFLOW_SUCCESS)) == 1

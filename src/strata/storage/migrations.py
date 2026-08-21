@@ -84,7 +84,11 @@ class SchemaMigrator:
         await self.db_manager.create_tables()
 
         async with self.db_manager.session() as session:
-            stmt = select(SchemaVersionModel.version).order_by(SchemaVersionModel.version.desc()).limit(1)
+            stmt = (
+                select(SchemaVersionModel.version)
+                .order_by(SchemaVersionModel.version.desc())
+                .limit(1)
+            )
             result = await session.execute(stmt)
             curr = result.scalar_one_or_none()
             return curr if curr is not None else 0
@@ -119,9 +123,7 @@ class SchemaMigrator:
             if migration.version <= current_version:
                 continue
 
-            logger.info(
-                f"Applying migration v{migration.version}: '{migration.description}'"
-            )
+            logger.info(f"Applying migration v{migration.version}: '{migration.description}'")
 
             async with self.db_manager.session() as session:
                 # Execute migration SQL statements

@@ -133,10 +133,14 @@ def setup_exception_handlers(app: FastAPI) -> None:
             message=str(exc.detail),
             code=f"HTTP_{exc.status_code}",
         )
-        return JSONResponse(status_code=exc.status_code, content=err_payload.model_dump(mode="json"))
+        return JSONResponse(
+            status_code=exc.status_code, content=err_payload.model_dump(mode="json")
+        )
 
     @app.exception_handler(RequestValidationError)
-    async def validation_error_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
+    async def validation_error_handler(
+        request: Request, exc: RequestValidationError
+    ) -> JSONResponse:
         req_id = getattr(request.state, "request_id", "unknown")
         logger.warning(f"[{req_id}] RequestValidationError caught: {exc.errors()}")
 

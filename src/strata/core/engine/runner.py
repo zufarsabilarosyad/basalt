@@ -84,9 +84,7 @@ class WorkflowRunner:
         run_id: str | None = None,
     ) -> WorkflowRunResult:
         """Synchronous wrapper for running a DAG workflow to completion."""
-        return asyncio.run(
-            self.run_async(dag=dag, inputs=inputs, env=env, run_id=run_id)
-        )
+        return asyncio.run(self.run_async(dag=dag, inputs=inputs, env=env, run_id=run_id))
 
     async def run_async(
         self,
@@ -139,7 +137,9 @@ class WorkflowRunner:
             # 2. Iterate through level progression
             for level_idx, level_steps in enumerate(execution_levels):
                 if cancel_event.is_set():
-                    logger.warning(f"Workflow run '{active_run_id}' cancelled before level {level_idx + 1}")
+                    logger.warning(
+                        f"Workflow run '{active_run_id}' cancelled before level {level_idx + 1}"
+                    )
                     workflow_state = WorkflowState.CANCELLED
                     error_message = "Workflow execution cancelled by request."
                     break
@@ -166,7 +166,9 @@ class WorkflowRunner:
                     if step.when:
                         condition_pass = ExpressionEvaluator.evaluate_condition(step.when, context)
                         if not condition_pass:
-                            logger.info(f"Skipping step '{step.id}' because condition 'when: {step.when}' evaluated to False.")
+                            logger.info(
+                                f"Skipping step '{step.id}' because condition 'when: {step.when}' evaluated to False."
+                            )
                             context.set_step_state(step.id, StepState.SKIPPED)
                             await self.hook_registry.trigger(
                                 LifecycleEvent.STEP_SKIPPED, context, {"step_id": step.id}
@@ -192,7 +194,9 @@ class WorkflowRunner:
                 # Process results and trigger step completion hooks
                 level_failed = False
                 for step in runnable_steps:
-                    state, output, step_err = level_results.get(step.id, (StepState.FAILED, {}, "No result"))
+                    state, output, step_err = level_results.get(
+                        step.id, (StepState.FAILED, {}, "No result")
+                    )
                     if state == StepState.COMPLETED:
                         await self.hook_registry.trigger(
                             LifecycleEvent.STEP_SUCCESS,
@@ -211,8 +215,10 @@ class WorkflowRunner:
 
                 # Fast-fail workflow if a step failed
                 if level_failed:
-                    logger.warning(f"Level execution failed in run '{active_run_id}'. Aborting downstream steps.")
-                    for rem_level in execution_levels[level_idx + 1:]:
+                    logger.warning(
+                        f"Level execution failed in run '{active_run_id}'. Aborting downstream steps."
+                    )
+                    for rem_level in execution_levels[level_idx + 1 :]:
                         for rem_step in rem_level:
                             if context.get_step_state(rem_step.id) == StepState.PENDING:
                                 context.set_step_state(rem_step.id, StepState.SKIPPED)
@@ -224,7 +230,10 @@ class WorkflowRunner:
                 workflow_state = StateMachine.aggregate_workflow_state(all_states)
 
         except Exception as exc:
-            logger.error(f"Workflow execution pipeline crashed for run '{active_run_id}': {exc}", exc_info=True)
+            logger.error(
+                f"Workflow execution pipeline crashed for run '{active_run_id}': {exc}",
+                exc_info=True,
+            )
             workflow_state = WorkflowState.FAILED
             error_message = f"Pipeline execution error: {exc}"
         finally:
@@ -312,7 +321,12 @@ class WorkflowRunner:
 
         for parent_id in step.depends_on:
             parent_state = context.get_step_state(parent_id)
-            if parent_state in (StepState.FAILED, StepState.TIMEOUT, StepState.SKIPPED, StepState.CANCELLED):
+            if parent_state in (
+                StepState.FAILED,
+                StepState.TIMEOUT,
+                StepState.SKIPPED,
+                StepState.CANCELLED,
+            ):
                 return True
 
         return False

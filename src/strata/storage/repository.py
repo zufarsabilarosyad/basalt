@@ -174,7 +174,9 @@ class StrataRepository:
 
         async with self.db_manager.session() as session:
             existing = await session.get(DAGRunModel, result.run_id)
-            state_val = result.state.value if isinstance(result.state, WorkflowState) else str(result.state)
+            state_val = (
+                result.state.value if isinstance(result.state, WorkflowState) else str(result.state)
+            )
 
             if existing is not None:
                 existing.state = state_val
@@ -185,7 +187,9 @@ class StrataRepository:
                 existing.error_message = result.error_message
 
                 # Update step runs
-                await session.execute(delete(StepRunModel).where(StepRunModel.run_id == result.run_id))
+                await session.execute(
+                    delete(StepRunModel).where(StepRunModel.run_id == result.run_id)
+                )
                 for step_id, st in result.step_states.items():
                     step_output = result.outputs.get(step_id)
                     st_val = st.value if isinstance(st, StepState) else str(st)
@@ -210,7 +214,11 @@ class StrataRepository:
         await self.initialize()
 
         async with self.db_manager.session() as session:
-            stmt = select(DAGRunModel).options(selectinload(DAGRunModel.step_runs)).where(DAGRunModel.id == run_id)
+            stmt = (
+                select(DAGRunModel)
+                .options(selectinload(DAGRunModel.step_runs))
+                .where(DAGRunModel.id == run_id)
+            )
             result = await session.execute(stmt)
             model = result.scalar_one_or_none()
             if model is None:
@@ -265,7 +273,11 @@ class StrataRepository:
         await self.initialize()
 
         async with self.db_manager.session() as session:
-            stmt = select(DAGRunModel).options(selectinload(DAGRunModel.step_runs)).order_by(DAGRunModel.start_time.desc())
+            stmt = (
+                select(DAGRunModel)
+                .options(selectinload(DAGRunModel.step_runs))
+                .order_by(DAGRunModel.start_time.desc())
+            )
             if dag_id:
                 stmt = stmt.where(DAGRunModel.dag_id == dag_id)
             if state:
@@ -376,20 +388,44 @@ class StrataRepository:
 
     async def list_dlq_payloads(
         self,
+        dag_id: str | None = None,
         processed: bool | None = None,
         limit: int = 50,
+        offset: int = 0,
     ) -> list[DLQModel]:
         """List stored Dead-Letter Queue entries."""
         await self.initialize()
 
         async with self.db_manager.session() as session:
             stmt = select(DLQModel).order_by(DLQModel.created_at.desc())
+            if dag_id is not None:
+                stmt = stmt.where(DLQModel.dag_id == dag_id)
             if processed is not None:
                 stmt = stmt.where(DLQModel.processed == processed)
 
-            stmt = stmt.limit(limit)
+            stmt = stmt.offset(offset).limit(limit)
             result = await session.execute(stmt)
             return list(result.scalars().all())
+
+    list_dlq_items = list_dlq_payloads
+
+    async def count_dlq_items(
+        self,
+        dag_id: str | None = None,
+        processed: bool | None = None,
+    ) -> int:
+        """Count stored Dead-Letter Queue entries."""
+        await self.initialize()
+
+        async with self.db_manager.session() as session:
+            stmt = select(func.count(DLQModel.id))
+            if dag_id is not None:
+                stmt = stmt.where(DLQModel.dag_id == dag_id)
+            if processed is not None:
+                stmt = stmt.where(DLQModel.processed == processed)
+
+            result = await session.execute(stmt)
+            return result.scalar_one() or 0
 
     async def mark_dlq_processed(self, payload_id: str) -> bool:
         """Mark Dead-Letter Queue entry as processed/resolved."""

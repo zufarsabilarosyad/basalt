@@ -103,6 +103,22 @@ class TriggerDispatcher:
         """Fetch registered trigger instance by ID."""
         return self._triggers.get(trigger_id)
 
+    def pause_trigger(self, trigger_id: str) -> bool:
+        """Pause a trigger by ID."""
+        trig = self.get_trigger(trigger_id)
+        if trig:
+            trig.pause()
+            return True
+        return False
+
+    def resume_trigger(self, trigger_id: str) -> bool:
+        """Resume a paused trigger by ID."""
+        trig = self.get_trigger(trigger_id)
+        if trig:
+            trig.resume()
+            return True
+        return False
+
     def list_triggers(self, dag_id: str | None = None) -> list[BaseTrigger]:
         """Query registered triggers with optional DAG filter."""
         if dag_id:
@@ -175,7 +191,9 @@ class TriggerDispatcher:
 
     async def _polling_loop(self) -> None:
         """Background loop periodically evaluating active triggers."""
-        logger.info(f"TriggerDispatcher polling loop started (poll_interval={self.poll_interval_seconds}s)")
+        logger.info(
+            f"TriggerDispatcher polling loop started (poll_interval={self.poll_interval_seconds}s)"
+        )
 
         while self._running:
             try:
@@ -189,7 +207,9 @@ class TriggerDispatcher:
             except asyncio.CancelledError:
                 break
             except Exception as e:
-                logger.error(f"Unexpected error in TriggerDispatcher polling loop: {e}", exc_info=True)
+                logger.error(
+                    f"Unexpected error in TriggerDispatcher polling loop: {e}", exc_info=True
+                )
                 await asyncio.sleep(self.poll_interval_seconds)
 
         logger.info("TriggerDispatcher polling loop stopped")
@@ -218,7 +238,9 @@ class TriggerDispatcher:
             except asyncio.CancelledError:
                 break
             except Exception as e:
-                logger.error(f"Unexpected error in TriggerDispatcher dispatch loop: {e}", exc_info=True)
+                logger.error(
+                    f"Unexpected error in TriggerDispatcher dispatch loop: {e}", exc_info=True
+                )
 
         logger.info("TriggerDispatcher event consumer loop stopped")
 

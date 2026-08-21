@@ -22,9 +22,12 @@ async def async_client(tmp_path) -> AsyncGenerator[httpx.AsyncClient, None]:
     db_url = f"sqlite+aiosqlite:///{db_file}"
 
     # Import and configure engine for tests
-    from strata.core.engine.engine import EngineConfig, get_engine
-    engine = get_engine()
-    engine.config = EngineConfig(db_url=db_url, use_memory_storage=False, enable_triggers=True)
+    from strata.core.engine.engine import EngineConfig, StrataEngine, set_engine
+
+    engine = StrataEngine(
+        config=EngineConfig(db_url=db_url, use_memory_storage=False, enable_triggers=True)
+    )
+    set_engine(engine)
     await engine.start()
 
     app = create_app()
@@ -36,9 +39,11 @@ async def async_client(tmp_path) -> AsyncGenerator[httpx.AsyncClient, None]:
         yield client
 
     await engine.stop()
+    set_engine(None)
 
 
 # --- System Telemetry & Health Tests ---
+
 
 @pytest.mark.asyncio
 async def test_health_and_info_endpoints(async_client: httpx.AsyncClient) -> None:
@@ -75,6 +80,7 @@ async def test_health_and_info_endpoints(async_client: httpx.AsyncClient) -> Non
 
 # --- Workflow DAG Endpoints Tests ---
 
+
 @pytest.mark.asyncio
 async def test_dag_registration_validation_and_lifecycle(async_client: httpx.AsyncClient) -> None:
     """Verify DAG registration, validation, retrieval, graph topology query, listing, and deletion."""
@@ -86,10 +92,12 @@ tags: ["api", "integration"]
 steps:
   - id: step_a
     executor_type: subprocess
-    command: "echo '{\"status\": \"ok\"}'"
+    command: >-
+      echo '{"status": "ok"}'
   - id: step_b
     executor_type: subprocess
-    command: "echo '{\"step\": \"b\"}'"
+    command: >-
+      echo '{"step": "b"}'
     depends_on: ["step_a"]
 """
 
@@ -141,6 +149,7 @@ steps:
 
 # --- Workflow Run Execution Endpoints Tests ---
 
+
 @pytest.mark.asyncio
 async def test_workflow_run_trigger_and_query(async_client: httpx.AsyncClient) -> None:
     """Verify triggering workflow execution, querying run status, step details, active runs, and run history."""
@@ -150,7 +159,8 @@ name: Run Execution DAG
 steps:
   - id: step_calc
     executor_type: subprocess
-    command: "echo '{\"computed\": 84}'"
+    command: >-
+      echo '{"computed": 84}'
 """
     # Register DAG
     await async_client.post("/api/v1/dags/", json={"spec": dag_yaml})
@@ -163,7 +173,7 @@ steps:
     assert resp_run.status_code == 201
     run_data = resp_run.json()
     run_id = run_data["run_id"]
-    assert run_data["state"] == "completed"
+    assert run_data["state"].upper() == "COMPLETED"
     assert run_data["outputs"]["step_calc"]["computed"] == 84
 
     # 2. Get active runs endpoint
@@ -195,7 +205,8 @@ name: Batch Run DAG
 steps:
   - id: s1
     executor_type: subprocess
-    command: "echo '{\"msg\": \"batch\"}'"
+    command: >-
+      echo '{"msg": "batch"}'
 """
     await async_client.post("/api/v1/dags/", json={"spec": dag_yaml})
 
@@ -221,6 +232,7 @@ steps:
 
 # --- Event Triggers, Webhooks, & DLQ Tests ---
 
+
 @pytest.mark.asyncio
 async def test_webhook_trigger_and_dlq_endpoints(async_client: httpx.AsyncClient) -> None:
     """Verify HTTP Webhook ingestion, trigger pause/resume, and DLQ operations."""
@@ -231,7 +243,8 @@ name: Webhook API DAG
 steps:
   - id: s_wh
     executor_type: subprocess
-    command: "echo '{{\\"received\\": true}}'"
+    command: >-
+      echo '{{"received": true}}'
 triggers:
   - id: trig_wh_api
     type: webhook
@@ -267,7 +280,7 @@ triggers:
         headers=headers,
     )
     assert resp_wh.status_code == 200
-    assert resp_wh.json()["state"] == "completed"
+    assert resp_wh.json()["state"].upper() == "COMPLETED"
 
     # 4. DLQ List endpoint
     resp_dlq = await async_client.get("/api/v1/dlq")

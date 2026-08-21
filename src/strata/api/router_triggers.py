@@ -40,7 +40,7 @@ def _to_trigger_response(trigger: BaseTrigger) -> TriggerResponse:
         dag_id=trigger.dag_id,
         type=trigger.spec.type,
         status=trigger.status.value,
-        enabled=trigger.enabled,
+        enabled=trigger.spec.enabled,
         next_fire_time=trigger.get_next_fire_time(),
         last_fired_at=trigger.last_fired_at,
     )
@@ -72,6 +72,7 @@ def _to_run_status_response(result: WorkflowRunResult) -> RunStatusResponse:
 
 
 # --- Webhook Endpoint ---
+
 
 @router.post(
     "/webhooks/{trigger_id}",
@@ -112,7 +113,9 @@ async def handle_webhook_event(
     except StrataError as exc:
         raise exc
     except Exception as exc:
-        logger.error(f"Failed processing webhook event for trigger '{trigger_id}': {exc}", exc_info=True)
+        logger.error(
+            f"Failed processing webhook event for trigger '{trigger_id}': {exc}", exc_info=True
+        )
         raise StrataError(
             message=f"Webhook processing error: {exc}",
             code="WEBHOOK_PROCESSING_FAILED",
@@ -120,6 +123,7 @@ async def handle_webhook_event(
 
 
 # --- Event Triggers Management Endpoints ---
+
 
 @router.get(
     "/triggers",
@@ -195,6 +199,7 @@ async def resume_trigger(
 
 
 # --- Dead-Letter Queue (DLQ) Endpoints ---
+
 
 @router.get(
     "/dlq",

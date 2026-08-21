@@ -83,6 +83,7 @@ class ExpressionEvaluator:
 
             if isinstance(val, (dict, list)):
                 import json
+
                 return json.dumps(val)
 
             return str(val)
@@ -261,7 +262,14 @@ class ExpressionEvaluator:
     @classmethod
     def _fallback_evaluate_comparison(cls, expr: str) -> bool:
         """Fallback evaluation for basic comparisons like '200 == 200' or 'prod == prod'."""
-        ops = [("==", operator.eq), ("!=", operator.ne), (">=", operator.ge), ("<=", operator.le), (">", operator.gt), ("<", operator.lt)]
+        ops = [
+            ("==", operator.eq),
+            ("!=", operator.ne),
+            (">=", operator.ge),
+            ("<=", operator.le),
+            (">", operator.gt),
+            ("<", operator.lt),
+        ]
         for symbol, op_fn in ops:
             if symbol in expr:
                 left_raw, right_raw = expr.split(symbol, 1)

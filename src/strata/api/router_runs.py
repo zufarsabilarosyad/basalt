@@ -243,7 +243,10 @@ async def cancel_run(
     summary="Retry Failed Workflow Run",
     description="Re-trigger execution of a previously failed or timed-out workflow run with original inputs.",
     responses={
-        400: {"model": ErrorResponse, "description": "Run is not in a failed or terminal retryable state."},
+        400: {
+            "model": ErrorResponse,
+            "description": "Run is not in a failed or terminal retryable state.",
+        },
         404: {"model": ErrorResponse, "description": "Target run ID not found."},
     },
 )
@@ -259,7 +262,11 @@ async def retry_failed_run(
             code="RUN_NOT_FOUND",
         )
 
-    if original_run.state not in (WorkflowState.FAILED, WorkflowState.TIMEOUT, WorkflowState.CANCELLED):
+    if original_run.state not in (
+        WorkflowState.FAILED,
+        WorkflowState.TIMEOUT,
+        WorkflowState.CANCELLED,
+    ):
         raise StrataError(
             message=f"Run '{run_id}' is in state '{original_run.state.value}' and cannot be retried.",
             code="INVALID_RUN_STATE_FOR_RETRY",

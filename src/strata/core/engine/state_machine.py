@@ -125,9 +125,9 @@ class StateMachine:
             WorkflowState.TIMEOUT,
         },
         WorkflowState.COMPLETED: set(),  # Terminal
-        WorkflowState.FAILED: set(),     # Terminal
+        WorkflowState.FAILED: set(),  # Terminal
         WorkflowState.CANCELLED: set(),  # Terminal
-        WorkflowState.TIMEOUT: set(),    # Terminal
+        WorkflowState.TIMEOUT: set(),  # Terminal
     }
 
     # Valid transitions map for StepState
@@ -151,10 +151,10 @@ class StateMachine:
             StepState.CANCELLED,
         },
         StepState.COMPLETED: set(),  # Terminal
-        StepState.FAILED: set(),     # Terminal
-        StepState.SKIPPED: set(),    # Terminal
+        StepState.FAILED: set(),  # Terminal
+        StepState.SKIPPED: set(),  # Terminal
         StepState.CANCELLED: set(),  # Terminal
-        StepState.TIMEOUT: set(),    # Terminal
+        StepState.TIMEOUT: set(),  # Terminal
     }
 
     # Terminal state sets

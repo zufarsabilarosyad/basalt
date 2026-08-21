@@ -82,7 +82,9 @@ class ModelSerializer:
         run_model = DAGRunModel(
             id=result.run_id,
             dag_id=result.dag_id,
-            state=result.state.value if isinstance(result.state, WorkflowState) else str(result.state),
+            state=result.state.value
+            if isinstance(result.state, WorkflowState)
+            else str(result.state),
             start_time=result.start_time,
             end_time=result.end_time,
             duration_ms=result.duration_ms,
@@ -121,7 +123,11 @@ class ModelSerializer:
             except ValueError:
                 step_states_dict[step_run.step_id] = StepState.FAILED
 
-        wf_state = WorkflowState(model.state) if model.state in [s.value for s in WorkflowState] else WorkflowState.FAILED
+        wf_state = (
+            WorkflowState(model.state)
+            if model.state in [s.value for s in WorkflowState]
+            else WorkflowState.FAILED
+        )
 
         start_t = model.start_time if model.start_time else datetime.now(UTC)
         end_t = model.end_time if model.end_time else datetime.now(UTC)

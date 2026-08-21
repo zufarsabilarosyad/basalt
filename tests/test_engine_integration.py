@@ -26,24 +26,28 @@ steps:
   - id: extract
     name: Extract Raw Records
     executor_type: subprocess
-    command: "echo '{\"records\": [1, 2, 3, 4, 5], \"count\": 5}'"
+    command: >-
+      echo '{"records": [1, 2, 3, 4, 5], "count": 5}'
 
   - id: transform
     name: Transform Data Payload
     executor_type: subprocess
-    command: "echo '{\"transformed_count\": 5, \"multiplier\": 2}'"
+    command: >-
+      echo '{"transformed_count": 5, "multiplier": 2}'
     depends_on: ["extract"]
 
   - id: validate
     name: Validate Record Schema
     executor_type: subprocess
-    command: "echo '{\"valid\": true}'"
+    command: >-
+      echo '{"valid": true}'
     depends_on: ["transform"]
 
   - id: load
     name: Load Into Target Store
     executor_type: subprocess
-    command: "echo '{\"loaded\": 5, \"status\": \"SUCCESS\"}'"
+    command: >-
+      echo '{"loaded": 5, "status": "SUCCESS"}'
     depends_on: ["validate"]
 """
 
@@ -83,17 +87,20 @@ name: E2E Conditional Pipeline
 steps:
   - id: check_feature
     executor_type: subprocess
-    command: "echo '{\"feature_enabled\": false}'"
+    command: >-
+      echo '{"feature_enabled": false}'
 
   - id: optional_feature_step
     executor_type: subprocess
-    command: "echo '{\"ran_optional\": true}'"
+    command: >-
+      echo '{"ran_optional": true}'
     depends_on: ["check_feature"]
     when: "${steps.check_feature.output.feature_enabled} == true"
 
   - id: main_pipeline_step
     executor_type: subprocess
-    command: "echo '{\"main_completed\": true}'"
+    command: >-
+      echo '{"main_completed": true}'
     depends_on: ["check_feature"]
 """
 
@@ -116,7 +123,8 @@ name: E2E Retry Recovery Pipeline
 steps:
   - id: step_with_retry
     executor_type: subprocess
-    command: "echo '{\"recovered\": true}'"
+    command: >-
+      echo '{"recovered": true}'
     retry_policy:
       max_retries: 2
       initial_interval_seconds: 0.05
@@ -140,17 +148,21 @@ name: E2E Slow Pipeline
 steps:
   - id: slow_step_1
     executor_type: subprocess
-    command: "sleep 0.5 && echo '{\"step\": 1}'"
+    command: >-
+      sleep 0.5 && echo '{"step": 1}'
   - id: slow_step_2
     executor_type: subprocess
-    command: "sleep 0.5 && echo '{\"step\": 2}'"
+    command: >-
+      sleep 0.5 && echo '{"step": 2}'
     depends_on: ["slow_step_1"]
 """
 
     await sqlite_engine.register_dag(slow_yaml)
 
     # Launch run in background task
-    run_task = asyncio.create_task(sqlite_engine.run_dag("e2e_slow_pipeline", run_id="cancel_test_run"))
+    run_task = asyncio.create_task(
+        sqlite_engine.run_dag("e2e_slow_pipeline", run_id="cancel_test_run")
+    )
     await asyncio.sleep(0.1)
 
     # Issue cancellation signal
@@ -169,15 +181,15 @@ id: e2e_batch_item_pipeline
 steps:
   - id: process_item
     executor_type: subprocess
-    command: "echo '{\"processed\": true}'"
+    command: >-
+      echo '{"processed": true}'
 """
 
     await sqlite_engine.register_dag(batch_yaml)
 
     # Submit 5 concurrent runs
     tasks = [
-        sqlite_engine.run_dag("e2e_batch_item_pipeline", inputs={"item_idx": i})
-        for i in range(5)
+        sqlite_engine.run_dag("e2e_batch_item_pipeline", inputs={"item_idx": i}) for i in range(5)
     ]
     results = await asyncio.gather(*tasks)
 
@@ -198,7 +210,8 @@ name: E2E Webhook Pipeline
 steps:
   - id: process_webhook
     executor_type: subprocess
-    command: "echo '{{\\"event_processed\\": true}}'"
+    command: >-
+      echo '{{"event_processed": true}}'
 triggers:
   - id: trig_e2e_wh
     type: webhook
@@ -210,6 +223,7 @@ triggers:
     # Process webhook event
     raw_body = b'{"action": "deploy", "env": "prod"}'
     from strata.core.triggers.webhook import WebhookSignatureVerifier
+
     sig = WebhookSignatureVerifier.compute_signature(raw_body, secret)
     headers = {"X-Strata-Signature": f"sha256={sig}"}
 
@@ -232,7 +246,8 @@ id: e2e_fail_pipeline
 steps:
   - id: step_ok
     executor_type: subprocess
-    command: "echo '{\"status\": \"ok\"}'"
+    command: >-
+      echo '{"status": "ok"}'
 
   - id: step_failing
     executor_type: subprocess
@@ -241,7 +256,8 @@ steps:
 
   - id: step_downstream
     executor_type: subprocess
-    command: "echo '{\"should_not_run\": true}'"
+    command: >-
+      echo '{"should_not_run": true}'
     depends_on: ["step_failing"]
 """
 
@@ -259,18 +275,20 @@ async def test_end_to_end_lifecycle_hooks_recording(sqlite_engine: StrataEngine)
     """Validate lifecycle callback hooks triggered during workflow execution."""
     recorded_events: list[str] = []
 
-    async def _on_workflow_start(ctx, payload):
+    async def _on_workflow_start(event, ctx, payload):
         recorded_events.append("WORKFLOW_START")
 
-    async def _on_step_success(ctx, payload):
+    async def _on_step_success(event, ctx, payload):
         recorded_events.append(f"STEP_SUCCESS_{payload.get('step_id')}")
 
-    async def _on_workflow_success(ctx, payload):
+    async def _on_workflow_success(event, ctx, payload):
         recorded_events.append("WORKFLOW_SUCCESS")
 
     sqlite_engine.runner.hook_registry.register(LifecycleEvent.WORKFLOW_START, _on_workflow_start)
     sqlite_engine.runner.hook_registry.register(LifecycleEvent.STEP_SUCCESS, _on_step_success)
-    sqlite_engine.runner.hook_registry.register(LifecycleEvent.WORKFLOW_SUCCESS, _on_workflow_success)
+    sqlite_engine.runner.hook_registry.register(
+        LifecycleEvent.WORKFLOW_SUCCESS, _on_workflow_success
+    )
 
     hook_yaml = """
 id: e2e_hook_pipeline

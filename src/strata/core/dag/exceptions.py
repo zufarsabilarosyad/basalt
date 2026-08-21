@@ -130,9 +130,7 @@ class OrphanDependencyError(DAGError):
         missing_dependency_id: str,
         dag_id: str | None = None,
     ) -> None:
-        message = (
-            f"Step '{step_id}' references non-existent upstream dependency '{missing_dependency_id}'."
-        )
+        message = f"Step '{step_id}' references non-existent upstream dependency '{missing_dependency_id}'."
         super().__init__(
             message=message,
             dag_id=dag_id,

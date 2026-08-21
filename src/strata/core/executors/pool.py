@@ -66,7 +66,11 @@ class ExecutorFactory:
 
     def has_executor(self, executor_type: str | ExecutorType) -> bool:
         """Check if executor type is registered in factory."""
-        key = str(executor_type.value if isinstance(executor_type, ExecutorType) else executor_type).lower().strip()
+        key = (
+            str(executor_type.value if isinstance(executor_type, ExecutorType) else executor_type)
+            .lower()
+            .strip()
+        )
         return key in self._executors
 
     def get_executor(self, executor_type: str | ExecutorType) -> BaseExecutor:
@@ -81,7 +85,11 @@ class ExecutorFactory:
         Raises:
             ExecutorError: If executor type is not registered.
         """
-        key = str(executor_type.value if isinstance(executor_type, ExecutorType) else executor_type).lower().strip()
+        key = (
+            str(executor_type.value if isinstance(executor_type, ExecutorType) else executor_type)
+            .lower()
+            .strip()
+        )
         if key not in self._executors:
             raise ExecutorError(
                 step_id="<factory>",
@@ -143,7 +151,9 @@ class WorkerPool:
         """
         async with self._semaphore:
             self._total_executed += 1
-            logger.debug(f"WorkerPool executing step '{step.id}' (executor: {step.executor_type.value})")
+            logger.debug(
+                f"WorkerPool executing step '{step.id}' (executor: {step.executor_type.value})"
+            )
             try:
                 executor = self.factory.get_executor(step.executor_type)
                 context.set_step_state(step.id, StepState.RUNNING)

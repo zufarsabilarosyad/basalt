@@ -5,8 +5,7 @@ and SQLite StrataEngine instances, sample YAML/JSON workflow specifications, moc
 and FastAPI AsyncClient test instances.
 """
 
-import asyncio
-from collections.abc import AsyncGenerator, Generator
+from collections.abc import AsyncGenerator
 
 import httpx
 import pytest
@@ -15,16 +14,8 @@ from httpx import ASGITransport
 from strata.api.app import create_app
 from strata.core.dag.ast import DAGSpec
 from strata.core.dag.parser import DAGParser
-from strata.core.engine.engine import EngineConfig, StrataEngine
+from strata.core.engine.engine import EngineConfig, StrataEngine, set_engine
 from strata.core.triggers.webhook import WebhookSignatureVerifier
-
-
-@pytest.fixture(scope="session")
-def event_loop() -> Generator[asyncio.AbstractEventLoop, None, None]:
-    """Session-scoped asyncio event loop fixture for pytest-asyncio."""
-    loop = asyncio.get_event_loop_policy().new_event_loop()
-    yield loop
-    loop.close()
 
 
 @pytest.fixture
@@ -39,9 +30,11 @@ async def memory_engine() -> AsyncGenerator[StrataEngine, None]:
     """Fixture providing started StrataEngine instance in in-memory mode."""
     config = EngineConfig(use_memory_storage=True, enable_triggers=True)
     engine = StrataEngine(config=config)
+    set_engine(engine)
     await engine.start()
     yield engine
     await engine.stop()
+    set_engine(None)
 
 
 @pytest.fixture
@@ -49,9 +42,11 @@ async def sqlite_engine(tmp_sqlite_url: str) -> AsyncGenerator[StrataEngine, Non
     """Fixture providing started StrataEngine instance backed by SQLite database."""
     config = EngineConfig(db_url=tmp_sqlite_url, use_memory_storage=False, enable_triggers=True)
     engine = StrataEngine(config=config)
+    set_engine(engine)
     await engine.start()
     yield engine
     await engine.stop()
+    set_engine(None)
 
 
 @pytest.fixture
@@ -192,10 +187,12 @@ def parsed_diamond_dag(sample_diamond_dag_yaml: str) -> DAGSpec:
 @pytest.fixture
 def make_webhook_headers():
     """Factory fixture generating HMAC signature headers for testing webhook ingestion."""
+
     def _gen_headers(body: bytes, secret: str) -> dict[str, str]:
         sig = WebhookSignatureVerifier.compute_signature(body, secret)
         return {
             "X-Strata-Signature": f"sha256={sig}",
             "Content-Type": "application/json",
         }
+
     return _gen_headers

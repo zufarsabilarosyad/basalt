@@ -259,7 +259,11 @@ async def test_run_dag_workflow_shortcut() -> None:
     """Verify run_dag_workflow helper function."""
     dag = DAGSpec(
         id="shortcut_dag",
-        steps=[StepSpec(id="echo_step", executor_type=ExecutorType.SUBPROCESS, command="echo 'shortcut'")],
+        steps=[
+            StepSpec(
+                id="echo_step", executor_type=ExecutorType.SUBPROCESS, command="echo 'shortcut'"
+            )
+        ],
     )
 
     res = await run_dag_workflow(dag)

@@ -121,7 +121,9 @@ class MemoryStorageEngine(BaseStorageEngine):
         """Persist a WorkflowRunResult log snapshot in memory."""
         with self._lock:
             self._runs[result.run_id] = copy.deepcopy(result)
-            logger.debug(f"MemoryStorage saved run result '{result.run_id}' for DAG '{result.dag_id}'")
+            logger.debug(
+                f"MemoryStorage saved run result '{result.run_id}' for DAG '{result.dag_id}'"
+            )
 
     def load_run_result(self, run_id: str) -> WorkflowRunResult:
         """Load a WorkflowRunResult from memory by run ID."""

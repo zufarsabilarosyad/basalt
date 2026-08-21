@@ -119,20 +119,34 @@ def test_backoff_constant_and_linear() -> None:
     """Verify Constant and Linear backoff calculation mathematics."""
     # Constant strategy
     d1 = BackoffCalculator.calculate_delay(
-        attempt=1, initial_delay_seconds=2.0, strategy=BackoffStrategy.CONSTANT, jitter=JitterStrategy.NONE
+        attempt=1,
+        initial_delay_seconds=2.0,
+        strategy=BackoffStrategy.CONSTANT,
+        jitter=JitterStrategy.NONE,
     )
     d3 = BackoffCalculator.calculate_delay(
-        attempt=3, initial_delay_seconds=2.0, strategy=BackoffStrategy.CONSTANT, jitter=JitterStrategy.NONE
+        attempt=3,
+        initial_delay_seconds=2.0,
+        strategy=BackoffStrategy.CONSTANT,
+        jitter=JitterStrategy.NONE,
     )
     assert d1 == 2.0
     assert d3 == 2.0
 
     # Linear strategy (factor=2.0 -> base = initial * (1 + (attempt-1)*(factor-1)))
     l1 = BackoffCalculator.calculate_delay(
-        attempt=1, initial_delay_seconds=1.0, backoff_factor=2.0, strategy=BackoffStrategy.LINEAR, jitter=JitterStrategy.NONE
+        attempt=1,
+        initial_delay_seconds=1.0,
+        backoff_factor=2.0,
+        strategy=BackoffStrategy.LINEAR,
+        jitter=JitterStrategy.NONE,
     )
     l2 = BackoffCalculator.calculate_delay(
-        attempt=2, initial_delay_seconds=1.0, backoff_factor=2.0, strategy=BackoffStrategy.LINEAR, jitter=JitterStrategy.NONE
+        attempt=2,
+        initial_delay_seconds=1.0,
+        backoff_factor=2.0,
+        strategy=BackoffStrategy.LINEAR,
+        jitter=JitterStrategy.NONE,
     )
     assert l1 == 1.0
     assert l2 == 2.0
@@ -141,13 +155,25 @@ def test_backoff_constant_and_linear() -> None:
 def test_backoff_exponential_and_max_cap() -> None:
     """Verify Exponential backoff growth and max_delay ceiling cap."""
     e1 = BackoffCalculator.calculate_delay(
-        attempt=1, initial_delay_seconds=1.0, backoff_factor=2.0, strategy=BackoffStrategy.EXPONENTIAL, jitter=JitterStrategy.NONE
+        attempt=1,
+        initial_delay_seconds=1.0,
+        backoff_factor=2.0,
+        strategy=BackoffStrategy.EXPONENTIAL,
+        jitter=JitterStrategy.NONE,
     )
     e2 = BackoffCalculator.calculate_delay(
-        attempt=2, initial_delay_seconds=1.0, backoff_factor=2.0, strategy=BackoffStrategy.EXPONENTIAL, jitter=JitterStrategy.NONE
+        attempt=2,
+        initial_delay_seconds=1.0,
+        backoff_factor=2.0,
+        strategy=BackoffStrategy.EXPONENTIAL,
+        jitter=JitterStrategy.NONE,
     )
     e3 = BackoffCalculator.calculate_delay(
-        attempt=3, initial_delay_seconds=1.0, backoff_factor=2.0, strategy=BackoffStrategy.EXPONENTIAL, jitter=JitterStrategy.NONE
+        attempt=3,
+        initial_delay_seconds=1.0,
+        backoff_factor=2.0,
+        strategy=BackoffStrategy.EXPONENTIAL,
+        jitter=JitterStrategy.NONE,
     )
     assert e1 == 1.0
     assert e2 == 2.0
@@ -155,7 +181,12 @@ def test_backoff_exponential_and_max_cap() -> None:
 
     # Ceiling max cap test
     e_capped = BackoffCalculator.calculate_delay(
-        attempt=10, initial_delay_seconds=1.0, max_delay_seconds=10.0, backoff_factor=2.0, strategy=BackoffStrategy.EXPONENTIAL, jitter=JitterStrategy.NONE
+        attempt=10,
+        initial_delay_seconds=1.0,
+        max_delay_seconds=10.0,
+        backoff_factor=2.0,
+        strategy=BackoffStrategy.EXPONENTIAL,
+        jitter=JitterStrategy.NONE,
     )
     assert e_capped == 10.0
 
@@ -179,11 +210,15 @@ def test_backoff_jitter_strategies() -> None:
 
 def test_backoff_policy_and_sequence() -> None:
     """Verify BackoffPolicy and generate_delay_sequence helper."""
-    policy = BackoffPolicy(initial_delay_seconds=1.0, backoff_factor=3.0, jitter=JitterStrategy.NONE)
+    policy = BackoffPolicy(
+        initial_delay_seconds=1.0, backoff_factor=3.0, jitter=JitterStrategy.NONE
+    )
     assert policy.calculate_delay(1) == 1.0
     assert policy.calculate_delay(2) == 3.0
 
-    seq = BackoffCalculator.generate_delay_sequence(max_retries=3, initial_delay_seconds=1.0, backoff_factor=2.0)
+    seq = BackoffCalculator.generate_delay_sequence(
+        max_retries=3, initial_delay_seconds=1.0, backoff_factor=2.0
+    )
     assert seq == [1.0, 2.0, 4.0]
 
     assert compute_backoff_delay(1, jitter=False) == 1.0
@@ -205,7 +240,9 @@ async def test_retry_handler_success_on_attempt_n() -> None:
         return "success"
 
     policy = RetryPolicySpec(max_retries=3, initial_delay_seconds=0.01, jitter=False)
-    result = await RetryHandler.execute_with_retry(flaky_task, retry_policy=policy, step_id="flaky_step")
+    result = await RetryHandler.execute_with_retry(
+        flaky_task, retry_policy=policy, step_id="flaky_step"
+    )
 
     assert result == "success"
     assert calls == 3
@@ -224,7 +261,9 @@ async def test_retry_handler_exhaustion_raises_exception() -> None:
     policy = RetryPolicySpec(max_retries=2, initial_delay_seconds=0.01, jitter=False)
 
     with pytest.raises(RetryExhaustedError) as exc_info:
-        await RetryHandler.execute_with_retry(doomed_task, retry_policy=policy, step_id="doomed_step")
+        await RetryHandler.execute_with_retry(
+            doomed_task, retry_policy=policy, step_id="doomed_step"
+        )
 
     assert exc_info.value.attempts == 3
     assert exc_info.value.step_id == "doomed_step"
@@ -247,7 +286,10 @@ async def test_retry_handler_non_retryable_exception() -> None:
     # Filter to only retry ValueError
     with pytest.raises(TypeError):
         await RetryHandler.execute_with_retry(
-            fatal_task, retry_policy=policy, step_id="fatal_step", retryable_exceptions=(ValueError,)
+            fatal_task,
+            retry_policy=policy,
+            step_id="fatal_step",
+            retryable_exceptions=(ValueError,),
         )
 
     assert calls == 1  # No retries executed

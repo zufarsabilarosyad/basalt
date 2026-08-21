@@ -14,6 +14,7 @@ from strata.core.engine.state_machine import StepState, WorkflowState
 
 # --- Standard System & Health Response Models ---
 
+
 class HealthResponse(BaseModel):
     """System health check status response model."""
 
@@ -39,6 +40,7 @@ class SystemInfoResponse(BaseModel):
 
 
 # --- Workflow DAG Request & Response Models ---
+
 
 class DAGRegisterRequest(BaseModel):
     """Request payload for registering or updating a workflow DAG specification."""
@@ -78,6 +80,7 @@ class DAGListResponse(BaseModel):
 
 
 # --- Workflow Run Request & Response Models ---
+
 
 class RunTriggerRequest(BaseModel):
     """Request payload to initiate execution of a workflow DAG."""
@@ -147,6 +150,7 @@ class RunListResponse(BaseModel):
 
 # --- Event Trigger Request & Response Models ---
 
+
 class TriggerResponse(BaseModel):
     """API response model for event trigger status."""
 
@@ -167,6 +171,7 @@ class TriggerListResponse(BaseModel):
 
 
 # --- Dead-Letter Queue (DLQ) Response Models ---
+
 
 class DLQItemResponse(BaseModel):
     """Dead-Letter Queue (DLQ) payload response model."""
@@ -189,6 +194,7 @@ class DLQListResponse(BaseModel):
 
 
 # --- Standard Error Response Models ---
+
 
 class ErrorDetail(BaseModel):
     """Detailed exception info model for standard API error responses."""

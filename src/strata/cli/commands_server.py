@@ -34,6 +34,7 @@ def start_server_cmd(host: str, port: int, reload: bool, workers: int) -> None:
 
     try:
         import uvicorn
+
         uvicorn.run(
             "strata.api.app:app",
             host=host,
@@ -94,7 +95,9 @@ def server_info_cmd(url: str, output_format: str) -> None:
             data = response.json()
             click.echo(CLIFormatter.format_json(data))
         else:
-            click.secho(f"✖ Failed retrieving server info (HTTP {response.status_code})", fg="red", err=True)
+            click.secho(
+                f"✖ Failed retrieving server info (HTTP {response.status_code})", fg="red", err=True
+            )
     except Exception as exc:
         click.secho(f"✖ Server is OFFLINE or unreachable: {exc}", fg="red", err=True)
 
@@ -110,6 +113,8 @@ def server_metrics_cmd(url: str) -> None:
             data = response.json()
             click.echo(CLIFormatter.format_json(data))
         else:
-            click.secho(f"✖ Failed retrieving metrics (HTTP {response.status_code})", fg="red", err=True)
+            click.secho(
+                f"✖ Failed retrieving metrics (HTTP {response.status_code})", fg="red", err=True
+            )
     except Exception as exc:
         click.secho(f"✖ Server is OFFLINE or unreachable: {exc}", fg="red", err=True)

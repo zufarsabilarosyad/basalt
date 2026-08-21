@@ -40,10 +40,7 @@ class JSONFormatter(logging.Formatter):
         }
 
         if self.include_timestamp:
-            log_data["timestamp"] = (
-                datetime.fromtimestamp(record.created, tz=UTC)
-                .isoformat()
-            )
+            log_data["timestamp"] = datetime.fromtimestamp(record.created, tz=UTC).isoformat()
 
         # Include exception information if present
         if record.exc_info:
@@ -68,11 +65,11 @@ class ConsoleFormatter(logging.Formatter):
     """Colored ANSI console log formatter for local development."""
 
     COLOR_CODES: dict[str, str] = {
-        "DEBUG": "\033[36m",     # Cyan
-        "INFO": "\033[32m",      # Green
-        "WARNING": "\033[33m",   # Yellow
-        "ERROR": "\033[31m",     # Red
-        "CRITICAL": "\033[1;31m", # Bold Red
+        "DEBUG": "\033[36m",  # Cyan
+        "INFO": "\033[32m",  # Green
+        "WARNING": "\033[33m",  # Yellow
+        "ERROR": "\033[31m",  # Red
+        "CRITICAL": "\033[1;31m",  # Bold Red
     }
     RESET_CODE: str = "\033[0m"
 
@@ -82,9 +79,9 @@ class ConsoleFormatter(logging.Formatter):
 
     def format(self, record: logging.LogRecord) -> str:
         """Format log record into human-readable console string with context tags."""
-        timestamp = datetime.fromtimestamp(
-            record.created, tz=UTC
-        ).strftime("%Y-%m-%d %H:%M:%S.%03d")
+        timestamp = datetime.fromtimestamp(record.created, tz=UTC).strftime(
+            "%Y-%m-%d %H:%M:%S.%03d"
+        )
 
         level_str = record.levelname
         if self.use_colors and level_str in self.COLOR_CODES:
@@ -100,7 +97,7 @@ class ConsoleFormatter(logging.Formatter):
             if val:
                 context_parts.append(f"{key}={val}")
 
-        context_str = f" [{ ' '.join(context_parts) }]" if context_parts else ""
+        context_str = f" [{' '.join(context_parts)}]" if context_parts else ""
         msg = record.getMessage()
 
         formatted = f"{timestamp} [{level_str}] [{record.name}]{context_str}: {msg}"
@@ -118,9 +115,7 @@ MutableMapping_or_Dict = Any
 class ContextLoggerAdapter(logging.LoggerAdapter):
     """Logger adapter that automatically attaches current ContextVar metadata."""
 
-    def process(
-        self, msg: Any, kwargs: MutableMapping_or_Dict
-    ) -> tuple[Any, dict[str, Any]]:
+    def process(self, msg: Any, kwargs: MutableMapping_or_Dict) -> tuple[Any, dict[str, Any]]:
         ctx = _LOG_CONTEXT.get().copy()
         extra = kwargs.get("extra", {})
         if isinstance(extra, dict):

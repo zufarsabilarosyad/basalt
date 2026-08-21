@@ -66,7 +66,9 @@ class CronEvaluator:
                 try:
                     low, high = int(low_s), int(high_s)
                     if low < min_val or high > max_val or low > high:
-                        raise CronParseError(field_str, f"Range [{low}, {high}] out of bounds [{min_val}, {max_val}]")
+                        raise CronParseError(
+                            field_str, f"Range [{low}, {high}] out of bounds [{min_val}, {max_val}]"
+                        )
                 except ValueError:
                     raise CronParseError(field_str, f"Invalid range values in '{part}'")
                 for v in range(max(min_val, low), min(max_val, high) + 1):
@@ -82,7 +84,9 @@ class CronEvaluator:
                     if min_val <= v <= max_val:
                         result.add(v)
                     else:
-                        raise CronParseError(field_str, f"Value {v} out of bounds [{min_val}, {max_val}]")
+                        raise CronParseError(
+                            field_str, f"Value {v} out of bounds [{min_val}, {max_val}]"
+                        )
                 except ValueError:
                     raise CronParseError(field_str, f"Invalid integer token '{part}'")
 

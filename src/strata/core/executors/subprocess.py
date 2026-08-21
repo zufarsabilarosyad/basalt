@@ -103,9 +103,7 @@ class SubprocessExecutor(BaseExecutor):
                     cwd=cwd,
                 )
 
-                logger.debug(
-                    f"Step '{step.id}' subprocess finished with exit code {exit_code}"
-                )
+                logger.debug(f"Step '{step.id}' subprocess finished with exit code {exit_code}")
 
                 if exit_code != 0:
                     error_msg = (

@@ -81,16 +81,8 @@ class BackoffCalculator:
         max_delay = max(initial_delay, max_delay_seconds)
         factor = max(1.0, backoff_factor)
 
-        strategy_enum = (
-            BackoffStrategy(strategy)
-            if isinstance(strategy, str)
-            else strategy
-        )
-        jitter_enum = (
-            JitterStrategy(jitter)
-            if isinstance(jitter, str)
-            else jitter
-        )
+        strategy_enum = BackoffStrategy(strategy) if isinstance(strategy, str) else strategy
+        jitter_enum = JitterStrategy(jitter) if isinstance(jitter, str) else jitter
 
         # 1. Base delay calculation
         if strategy_enum == BackoffStrategy.CONSTANT:

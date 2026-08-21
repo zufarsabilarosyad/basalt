@@ -64,9 +64,7 @@ steps:
             "id": "dag_dict_test",
             "name": "Dict Engine Test",
             "tags": ["dict"],
-            "steps": [
-                {"id": "s1", "executor_type": "subprocess", "command": "echo dict"}
-            ],
+            "steps": [{"id": "s1", "executor_type": "subprocess", "command": "echo dict"}],
         }
         dag_dict = await engine.register_dag(dict_content)
         assert dag_dict.id == "dag_dict_test"
@@ -145,7 +143,7 @@ async def test_engine_webhook_event_trigger(tmp_path) -> None:
                 StepSpec(
                     id="step_wh",
                     executor_type=ExecutorType.SUBPROCESS,
-                    command="echo '{\"result\": \"Hello Alice\"}'",
+                    command='echo \'{"result": "Hello Alice"}\'',
                 )
             ],
             triggers=[

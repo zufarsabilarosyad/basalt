@@ -76,7 +76,9 @@ class WebhookTrigger(BaseTrigger):
     def __init__(self, trigger_spec: TriggerSpec, dag_id: str) -> None:
         super().__init__(trigger_spec, dag_id)
         if trigger_spec.type != TriggerType.WEBHOOK:
-            raise ValueError(f"WebhookTrigger requires TriggerType.WEBHOOK, got '{trigger_spec.type}'")
+            raise ValueError(
+                f"WebhookTrigger requires TriggerType.WEBHOOK, got '{trigger_spec.type}'"
+            )
         self.secret = trigger_spec.webhook_secret
 
     def should_fire(self, current_time: datetime | None = None) -> bool:

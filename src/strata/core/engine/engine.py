@@ -141,7 +141,9 @@ class StrataEngine:
         # 1. Parse AST
         if isinstance(dag_input, DAGSpec):
             dag = dag_input
-        elif isinstance(dag_input, str) and (dag_input.strip().startswith("{") or "steps:" in dag_input):
+        elif isinstance(dag_input, str) and (
+            dag_input.strip().startswith("{") or "steps:" in dag_input
+        ):
             dag = self.parser.parse_string(dag_input)
         elif isinstance(dag_input, str):
             dag = await self.parser.parse_file(dag_input)
@@ -343,3 +345,9 @@ def get_engine(config: EngineConfig | None = None) -> StrataEngine:
     if _engine_singleton is None:
         _engine_singleton = StrataEngine(config=config)
     return _engine_singleton
+
+
+def set_engine(engine: StrataEngine | None) -> None:
+    """Set or reset process-wide StrataEngine singleton instance."""
+    global _engine_singleton
+    _engine_singleton = engine

@@ -216,11 +216,21 @@ class StepSpec(BaseModel):
     def validate_executor_parameters(self) -> "StepSpec":
         """Validate required payload parameters are present for selected executor type."""
         if self.executor_type == ExecutorType.SUBPROCESS and not self.command:
-            raise ValueError(f"Step '{self.id}' with executor_type 'subprocess' requires 'command'.")
-        if self.executor_type == ExecutorType.INLINE and not (self.function or self.callable_name or (self.module_path and self.function_name)):
-            raise ValueError(f"Step '{self.id}' with executor_type 'inline' requires function definition.")
-        if self.executor_type == ExecutorType.PYTHON_INLINE and not (self.function or self.callable_name or (self.module_path and self.function_name)):
-            raise ValueError(f"Step '{self.id}' with executor_type 'python_inline' requires function definition.")
+            raise ValueError(
+                f"Step '{self.id}' with executor_type 'subprocess' requires 'command'."
+            )
+        if self.executor_type == ExecutorType.INLINE and not (
+            self.function or self.callable_name or (self.module_path and self.function_name)
+        ):
+            raise ValueError(
+                f"Step '{self.id}' with executor_type 'inline' requires function definition."
+            )
+        if self.executor_type == ExecutorType.PYTHON_INLINE and not (
+            self.function or self.callable_name or (self.module_path and self.function_name)
+        ):
+            raise ValueError(
+                f"Step '{self.id}' with executor_type 'python_inline' requires function definition."
+            )
         if self.executor_type == ExecutorType.HTTP:
             if not self.url:
                 raise ValueError(f"Step '{self.id}' with executor_type 'http' requires 'url'.")
@@ -263,9 +273,7 @@ class TriggerSpec(BaseModel):
     def validate_trigger_id(cls, v: str) -> str:
         """Validate trigger ID matches identifier syntax rules."""
         if not is_valid_identifier(v):
-            raise ValueError(
-                f"Trigger ID '{v}' is invalid. Must match ^[a-zA-Z0-9_-]+$."
-            )
+            raise ValueError(f"Trigger ID '{v}' is invalid. Must match ^[a-zA-Z0-9_-]+$.")
         return v
 
     @model_validator(mode="after")
@@ -336,9 +344,7 @@ class DAGSpec(BaseModel):
     def validate_dag_id(cls, v: str) -> str:
         """Validate DAG ID matches identifier syntax rules."""
         if not is_valid_identifier(v):
-            raise ValueError(
-                f"DAG ID '{v}' is invalid. Must match ^[a-zA-Z0-9_-]+$."
-            )
+            raise ValueError(f"DAG ID '{v}' is invalid. Must match ^[a-zA-Z0-9_-]+$.")
         return v
 
     def get_step(self, step_id: str) -> StepSpec | None:
