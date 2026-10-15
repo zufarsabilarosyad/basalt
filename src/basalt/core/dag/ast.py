@@ -88,6 +88,10 @@ class StepSpec(BaseModel):
         default=ExecutorType.SUBPROCESS,
         description="Executor type handling task execution.",
     )
+    executor_name: str | None = Field(
+        default=None,
+        description="Registered executor name when executor_type is 'custom'.",
+    )
 
     # Subprocess Executor Parameters
     command: str | None = Field(
@@ -236,6 +240,10 @@ class StepSpec(BaseModel):
                 raise ValueError(f"Step '{self.id}' with executor_type 'http' requires 'url'.")
             if not validate_http_url(self.url):
                 raise ValueError(f"Step '{self.id}' contains invalid HTTP URL '{self.url}'.")
+        if self.executor_type == ExecutorType.CUSTOM and not self.executor_name:
+            raise ValueError(
+                f"Step '{self.id}' with executor_type 'custom' requires 'executor_name'."
+            )
         return self
 
 

@@ -155,7 +155,12 @@ class WorkerPool:
                 f"WorkerPool executing step '{step.id}' (executor: {step.executor_type.value})"
             )
             try:
-                executor = self.factory.get_executor(step.executor_type)
+                executor_key = (
+                    step.executor_name
+                    if step.executor_type is ExecutorType.CUSTOM
+                    else step.executor_type
+                )
+                executor = self.factory.get_executor(executor_key)
                 context.set_step_state(step.id, StepState.RUNNING)
 
                 output = await executor.execute(step, context)
