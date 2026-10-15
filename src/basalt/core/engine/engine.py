@@ -4,6 +4,7 @@ Provides BasaltEngine class unifying YAML/JSON DAG parsing, topological sorting 
 storage persistence, resilient worker pool execution, and event trigger dispatching.
 """
 
+from collections.abc import Iterable
 from typing import Any
 
 from pydantic import BaseModel, Field
@@ -20,6 +21,10 @@ from basalt.core.storage.memory import MemoryStorageEngine
 from basalt.core.triggers.base import TriggerEvent
 from basalt.core.triggers.dispatcher import TriggerDispatcher
 from basalt.core.triggers.webhook import WebhookTrigger
+from basalt.observability.events import EventLevel, RunEvent
+from basalt.observability.metrics import MetricsRegistry
+from basalt.observability.tracing import TraceRecorder
+from basalt.plugins import BasaltPlugin, PluginRegistry, discover_plugins
 from basalt.storage.database import get_db_manager
 from basalt.storage.repository import BasaltRepository
 from basalt.utils.crypto import generate_run_id
@@ -53,17 +58,42 @@ class EngineConfig(BaseModel):
         default=True,
         description="Automatically launch background trigger dispatcher.",
     )
+    observability_history: int = Field(
+        default=1000,
+        ge=1,
+        description="Maximum workflow traces retained by the embedded observer.",
+    )
+    discover_plugins: bool = Field(
+        default=False,
+        description="Discover installed plugins from the 'basalt.plugins' entry-point group.",
+    )
+    plugin_config: dict[str, dict[str, Any]] = Field(
+        default_factory=dict,
+        description="Per-plugin configuration keyed by declared plugin name.",
+    )
 
 
 class BasaltEngine:
     """Master facade API unifying Basalt workflow engine subsystems."""
 
-    def __init__(self, config: EngineConfig | None = None) -> None:
+    def __init__(
+        self,
+        config: EngineConfig | None = None,
+        plugins: Iterable[BasaltPlugin] | None = None,
+    ) -> None:
         self.config = config or EngineConfig()
         self.parser = DAGParser()
         self.worker_pool = WorkerPool(max_concurrency=self.config.max_concurrency)
         self.runner = WorkflowRunner(worker_pool=self.worker_pool)
         self.dispatcher = TriggerDispatcher(poll_interval_seconds=self.config.poll_interval_seconds)
+        self.metrics = MetricsRegistry()
+        self.traces = TraceRecorder(max_traces=self.config.observability_history)
+        self._events: list[RunEvent] = []
+        self.plugins = PluginRegistry()
+        self._plugins_discovered = False
+        self.plugins.register_host_service("basalt.executor_factory", self.worker_pool.factory)
+        if plugins:
+            self.plugins.register_many(plugins)
 
         if self.config.use_memory_storage:
             self.memory_storage = MemoryStorageEngine()
@@ -85,6 +115,11 @@ class BasaltEngine:
         """Initialize database schema, storage engines, and register trigger event listeners."""
         if self.repository:
             await self.repository.initialize()
+
+        if self.config.discover_plugins and not self._plugins_discovered:
+            self.plugins.register_many(discover_plugins())
+            self._plugins_discovered = True
+        await self.plugins.start_all(self.config.plugin_config)
 
         # Wire trigger dispatcher callback to engine workflow execution
         self.dispatcher.add_listener(self._handle_trigger_event)
@@ -111,6 +146,7 @@ class BasaltEngine:
         if self.config.enable_triggers:
             await self.dispatcher.stop()
 
+        await self.plugins.stop_all()
         self.worker_pool.shutdown()
         self._running = False
         logger.info("BasaltEngine facade stopped")
@@ -249,6 +285,17 @@ class BasaltEngine:
             dag = dag_id_or_spec
 
         active_run_id = run_id or generate_run_id()
+        trace = self.traces.create_trace()
+        self._record_event(
+            RunEvent(
+                name="workflow.started",
+                run_id=active_run_id,
+                dag_id=dag.id,
+                trace_id=trace.trace_id,
+            )
+        )
+        self.metrics.increment("basalt_workflow_runs_total", labels={"dag_id": dag.id})
+        self.metrics.adjust_gauge("basalt_workflow_runs_active", 1, {"dag_id": dag.id})
         logger.info(f"Submitting execution for DAG '{dag.id}' (run_id='{active_run_id}')")
 
         # Create pending run record in database
@@ -256,7 +303,15 @@ class BasaltEngine:
             await self.repository.create_run(dag_id=dag.id, run_id=active_run_id, inputs=inputs)
 
         # Run DAG through WorkflowRunner
-        result = await self.runner.run_async(dag=dag, inputs=inputs, run_id=active_run_id)
+        with self.traces.span("workflow.run", trace.trace_id, attributes={"dag_id": dag.id, "run_id": active_run_id}) as span:
+            try:
+                result = await self.runner.run_async(dag=dag, inputs=inputs, run_id=active_run_id)
+            except Exception as exc:
+                self.metrics.increment("basalt_workflow_failures_total", labels={"dag_id": dag.id})
+                self._record_event(RunEvent(name="workflow.failed", run_id=active_run_id, dag_id=dag.id, level=EventLevel.ERROR, message=str(exc), trace_id=trace.trace_id, span_id=span.span_id))
+                raise
+            finally:
+                self.metrics.adjust_gauge("basalt_workflow_runs_active", -1, {"dag_id": dag.id})
 
         # Save run result snapshot
         if self.repository:
@@ -264,10 +319,39 @@ class BasaltEngine:
         elif self.memory_storage:
             self.memory_storage.save_run_result(result)
 
+        result_state = result.state.value
+        self.metrics.increment(
+            "basalt_workflow_completed_total",
+            labels={"dag_id": dag.id, "state": result_state},
+        )
+        self._record_event(
+            RunEvent(
+                name="workflow.completed",
+                run_id=active_run_id,
+                dag_id=dag.id,
+                level=EventLevel.INFO if result_state == "success" else EventLevel.WARNING,
+                attributes={"state": result_state},
+                trace_id=trace.trace_id,
+            )
+        )
+
         logger.info(
             f"Completed DAG '{dag.id}' run '{active_run_id}' with state '{result.state.value}'"
         )
         return result
+
+    def _record_event(self, event: RunEvent) -> None:
+        """Retain a bounded operational event history for local diagnostics."""
+        self._events.append(event)
+        overflow = len(self._events) - self.config.observability_history
+        if overflow > 0:
+            del self._events[:overflow]
+
+    def recent_events(self, limit: int = 100) -> list[RunEvent]:
+        """Return latest engine events in reverse chronological insertion order."""
+        if limit < 0:
+            raise ValueError("limit cannot be negative")
+        return list(reversed(self._events[-limit:]))
 
     async def get_run_result(self, run_id: str) -> WorkflowRunResult | None:
         """Fetch execution run result log by run ID."""
