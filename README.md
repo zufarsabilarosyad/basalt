@@ -20,6 +20,40 @@ Basalt operates completely self-contained in-process or backed by a local SQLite
 * ⏰ **Event Triggers & Scheduler:** 5-field Cron schedules, fixed interval timers, and incoming HTTP Webhook ingestion with HMAC verification.
 * 💾 **SQLite Audit Ledger:** Async SQLAlchemy 2.0 database layer storing complete run histories, step outputs, and execution metrics.
 * 🌐 **Dual Interface:** REST API powered by FastAPI and a command-line interface (CLI) powered by Click.
+* 🧩 **Plugin SDK:** Dependency-aware extensions for executors, triggers, hooks, storage, serializers, observers, and optional API routers.
+
+---
+
+## Plugins
+
+Basalt has a small, explicit extension SDK. Plugins are installed and owned by
+the application; the engine never downloads or executes a package from an
+untrusted path. A plugin declares a manifest, publishes narrowly named services
+through its context, and participates in the engine lifecycle.
+
+```python
+from basalt.plugins import BasaltPlugin, PluginCapability, PluginContext, PluginManifest
+
+
+class AuditPlugin(BasaltPlugin):
+    manifest = PluginManifest(
+        name="acme.audit",
+        version="1.0.0",
+        capabilities=frozenset({PluginCapability.OBSERVER}),
+    )
+
+    async def start(self, context: PluginContext) -> None:
+        context.register_service("acme.audit.writer", AuditWriter())
+
+
+engine = BasaltEngine(plugins=[AuditPlugin()])
+```
+
+Installed packages can expose a plugin or zero-argument plugin factory using
+the `basalt.plugins` Python entry-point group. Set `EngineConfig(discover_plugins=True)`
+to opt into discovering those already-installed extensions. The registry starts
+dependencies in order, rolls back an incomplete startup, prevents a required
+dependency from stopping first, and exposes a health snapshot for an API or CLI.
 
 ---
 
